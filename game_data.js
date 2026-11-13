@@ -5,7 +5,7 @@ window.APP_DATA = {
     "courseTitle": "Năng lực số · Chuyên đề Công nghệ số",
     "sessionTitle": "Buổi 6: AI Mastery & Phòng chống Phishing",
     "schoolName": "Trường ĐH Thủ Dầu Một · Trung tâm Chuyển đổi số",
-    "teacherPin": "2026",
+    "teacherPin": "868626",
     "leaderboardEndpoint": ""
   },
   "quizQuestions": [

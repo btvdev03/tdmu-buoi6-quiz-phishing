@@ -17,7 +17,7 @@
       courseTitle: "Năng lực số · Chuyên đề Công nghệ số",
       sessionTitle: "Buổi 6: AI Mastery Quiz & Phishing Simulator",
       schoolName: "Trường ĐH Thủ Dầu Một · Trung tâm Chuyển đổi số",
-      teacherPin: "2026",
+      teacherPin: "868626",
       leaderboardEndpoint: ""
     },
     quizQuestions: [
@@ -545,7 +545,7 @@
     const src = raw && typeof raw === "object" ? raw : {};
 
     const meta = Object.assign({}, base.meta, src.meta || {});
-    meta.teacherPin = meta.teacherPin !== undefined ? String(meta.teacherPin) : "2026";
+    meta.teacherPin = meta.teacherPin !== undefined ? String(meta.teacherPin) : "868626";
     meta.leaderboardEndpoint = String(meta.leaderboardEndpoint || "").trim();
 
     const quizQuestions = (Array.isArray(src.quizQuestions) && src.quizQuestions.length ? src.quizQuestions : base.quizQuestions).map((q, i) => ({
@@ -598,7 +598,13 @@
 
     try {
       const cfgRaw = localStorage.getItem(CFG_STORAGE_KEY);
-      if (cfgRaw) data = normalizeAppData(JSON.parse(cfgRaw));
+      if (cfgRaw) {
+        const parsedCfg = JSON.parse(cfgRaw);
+        if (parsedCfg?.meta?.teacherPin === "2026") {
+          parsedCfg.meta.teacherPin = data.meta.teacherPin;
+        }
+        data = normalizeAppData(parsedCfg);
+      }
     } catch (e) { /* ignore */ }
 
     try {
@@ -1705,7 +1711,7 @@
     openModal(
       "Xác thực Giảng viên",
       `<form id="formTeacherPin">
-        <p class="muted">Nhập mã PIN giảng viên để mở Bảng điều khiển, nhập hàng loạt kết quả chat lớp và chỉnh sửa bộ đề (Mặc định: <code>2026</code>).</p>
+        <p class="muted">Nhập mã PIN giảng viên để mở Bảng điều khiển, nhập hàng loạt kết quả chat lớp và chỉnh sửa bộ đề.</p>
         <div class="form-group">
           <label for="inputTeacherPin">Mã PIN</label>
           <input type="password" id="inputTeacherPin" class="input-apple" placeholder="Nhập mã PIN..." autofocus required />
