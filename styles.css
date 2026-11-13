@@ -1677,6 +1677,254 @@ body {
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* ==========================================================================
+   SIMULATED DESTINATION SCREEN OVERLAY (Link / Attachment Preview)
+   ========================================================================== */
+.sim-screen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6500;
+  background: rgba(15, 23, 42, 0.56);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.sim-screen-overlay.hidden { display: none !important; }
+.sim-screen-window {
+  width: min(740px, 96vw);
+  max-height: 90vh;
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: breachPop 0.18s ease-out;
+}
+.sim-screen-chrome {
+  background: #E8EAED;
+  padding: 10px 14px 0 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 1px solid #D2D5DA;
+}
+.sim-screen-dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 10px;
+}
+.sim-screen-dots span,
+.sim-screen-dots button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+}
+.sim-dot-close { background: #FF5F57; cursor: pointer; }
+.sim-dot-close:hover { filter: brightness(0.9); }
+.sim-dot-yellow { background: #FEBC2E; }
+.sim-dot-green { background: #28C840; }
+.sim-screen-tab {
+  background: #FFFFFF;
+  color: #1D1D1F;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 9px 9px 0 0;
+  border: 1px solid #D2D5DA;
+  border-bottom: none;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sim-screen-env-tag {
+  margin-left: auto;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #5F6368;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.sim-screen-address-row {
+  background: #FFFFFF;
+  padding: 8px 14px;
+  border-bottom: 1px solid #E5E7EB;
+}
+.sim-screen-omnibox {
+  background: #F1F3F4;
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #202124;
+}
+.sim-screen-omnibox .svg-icon { width: 14px; height: 14px; flex-shrink: 0; color: #5F6368; }
+.sim-screen-omnibox code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+  color: #1D1D1F;
+}
+.sim-screen-body {
+  padding: 20px;
+  overflow-y: auto;
+  background: #F8FAFC;
+  flex: 1;
+}
+.sim-screen-footer {
+  padding: 12px 18px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sim-screen-hint { font-size: 0.82rem; color: var(--muted); }
+
+/* Fake / Official Page Cards inside Simulator */
+.sim-page-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+.sim-page-banner {
+  background: linear-gradient(135deg, #004E98, #0071E3);
+  color: #FFFFFF;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sim-page-banner.is-urgent { background: linear-gradient(135deg, #1D4ED8, #2563EB); }
+.sim-page-banner.is-safe { background: linear-gradient(135deg, #0F5132, #198754); }
+.sim-page-body { padding: 18px 20px; }
+.sim-page-body h4 { margin: 0 0 6px; font-size: 1.04rem; color: #0F172A; }
+.sim-page-body p { margin: 0 0 12px; font-size: 0.9rem; color: #475569; line-height: 1.5; }
+.sim-fake-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+.sim-fake-field label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+.sim-fake-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #F8FAFC;
+}
+.sim-fake-submit {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 9px;
+  border: none;
+  background: #0071E3;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.sim-fake-submit:hover { background: #005BB5; }
+
+/* Fake Excel Protected View */
+.sim-excel-bar {
+  background: #217346;
+  color: #FFFFFF;
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sim-excel-macro-warn {
+  background: #FFF3CD;
+  border-bottom: 1px solid #FFE69C;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.83rem;
+  color: #664D03;
+}
+.sim-btn-enable-macro {
+  background: #FFFFFF;
+  border: 1px solid #997404;
+  color: #664D03;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sim-btn-enable-macro:hover { background: #FFECB5; }
+.sim-excel-sheet {
+  padding: 14px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: #475569;
+  background: #FFFFFF;
+}
+.sim-excel-blur {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px dashed #CBD5E1;
+  border-radius: 8px;
+  background: #F8FAFC;
+  text-align: center;
+  color: #64748B;
+}
+
+/* Inline Simulated Alert triggered when interacting inside fake page */
+.sim-breach-inline-warn {
+  margin-top: 14px;
+  background: #FEF2F2;
+  border: 1.5px solid #DC2626;
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #7F1D1D;
+}
+.sim-breach-inline-warn h5 { margin: 0 0 6px; font-size: 0.94rem; color: #B91C1C; }
+.sim-breach-inline-warn ul { margin: 6px 0 0 18px; padding: 0; font-size: 0.84rem; }
+
+/* Safe Portal preview elements */
+.sim-safe-meta-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  color: #166534;
+}
+.sim-safe-meta-list li + li { margin-top: 5px; }
+
+/* ==========================================================================
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 900px) {
@@ -1684,7 +1932,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .form-row-entry, .quiz-options-grid, .phish-action-bar, .result-stats-grid, .podium-grid, .settings-grid, .form-row-2 {
+  .form-row-entry, .quiz-options-grid, .phish-action-bar, .result-stats-grid, .podium-grid, .settings-grid, .form-row-2, .sim-fake-form-grid {
     grid-template-columns: 1fr;
   }
   .stage-preview-row { flex-direction: column; align-items: flex-start; }

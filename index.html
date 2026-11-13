@@ -52,6 +52,36 @@
     </div>
   </div>
 
+  <!-- SIMULATED DESTINATION BROWSER / FILE PREVIEW OVERLAY (Non-grading) -->
+  <div id="simScreenOverlay" class="sim-screen-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="simScreenTabTitle">
+    <div class="sim-screen-window">
+      <div class="sim-screen-chrome">
+        <div class="sim-screen-dots">
+          <button type="button" class="sim-dot-close" id="btnSimDotClose" title="Đóng cửa sổ mô phỏng" aria-label="Đóng"></button>
+          <span class="sim-dot-yellow"></span>
+          <span class="sim-dot-green"></span>
+        </div>
+        <div class="sim-screen-tab">
+          <span id="simScreenTabTitle">Trình duyệt mô phỏng</span>
+        </div>
+        <span class="sim-screen-env-tag">Mô phỏng tương tác</span>
+      </div>
+      <div class="sim-screen-address-row">
+        <div class="sim-screen-omnibox">
+          <svg class="svg-icon" id="simScreenLockIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <code id="simScreenUrl">https://...</code>
+        </div>
+      </div>
+      <div id="simScreenBody" class="sim-screen-body"></div>
+      <div class="sim-screen-footer">
+        <span class="sim-screen-hint">Quan sát kỹ địa chỉ trên thanh URL &amp; nội dung trang, sau đó quay lại chọn <strong>An toàn</strong> hoặc <strong>Chặn</strong>.</span>
+        <button type="button" class="btn btn-primary" id="btnCloseSimScreen">
+          <span>Đóng &amp; Quay lại đánh giá</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- APPLE FROSTED GLASS TOPBAR -->
   <header class="topbar">
     <div class="topbar-inner">
@@ -106,8 +136,8 @@
               <input type="text" id="inputPlayerName" class="input-apple" placeholder="Nguyễn Văn An" maxlength="60" autocomplete="name" />
             </div>
             <div class="form-group">
-              <label for="inputPlayerMssv">Mã số sinh viên (MSSV) <span class="req">*</span></label>
-              <input type="text" id="inputPlayerMssv" class="input-apple" placeholder="2224802010001" maxlength="30" />
+              <label for="inputPlayerMssv">Mã số sinh viên (MSSV - Chỉ nhập số) <span class="req">*</span></label>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" id="inputPlayerMssv" class="input-apple" placeholder="2224802010001" maxlength="20" autocomplete="off" />
             </div>
           </div>
 
@@ -181,7 +211,7 @@
         <div class="phish-sim-column">
           <div class="sim-hint-bar">
             <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Kiểm tra kỹ người gửi, nội dung, tệp đính kèm và đường dẫn trước khi quyết định. Bấm nhầm bẫy sẽ kích hoạt cảnh báo ngay.</span>
+            <span>Bạn có thể bấm vào liên kết hoặc tệp đính kèm để xem màn hình mô phỏng thực tế, sau đó chọn <strong>An toàn</strong> hoặc <strong>Chặn</strong> để chấm điểm &amp; xem phân tích.</span>
           </div>
 
           <div class="sim-shell" id="phishSimShell">

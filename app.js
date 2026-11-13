@@ -697,8 +697,12 @@
 
     const nameInput = document.getElementById("inputPlayerName");
     const mssvInput = document.getElementById("inputPlayerMssv");
+    const cleanCachedMssv = String(state.player.mssv || "").replace(/\D+/g, "");
+    if (cleanCachedMssv !== state.player.mssv) {
+      state.player.mssv = cleanCachedMssv;
+    }
     if (nameInput && !nameInput.value && state.player.name) nameInput.value = state.player.name;
-    if (mssvInput && !mssvInput.value && state.player.mssv) mssvInput.value = state.player.mssv;
+    if (mssvInput && !mssvInput.value && cleanCachedMssv) mssvInput.value = cleanCachedMssv;
 
     const syncPill = document.getElementById("syncStatusPill");
     if (syncPill) {
@@ -729,12 +733,12 @@
       return;
     }
 
-    if (!mssv) {
+    if (!mssv || !/^\d+$/.test(mssv)) {
       mssvEl.classList.remove("input-error");
       void mssvEl.offsetWidth;
       mssvEl.classList.add("input-error");
       mssvEl.focus();
-      showToast("Vui lòng nhập Mã số sinh viên (MSSV) trước khi bắt đầu.", "warning");
+      showToast("MSSV bắt buộc phải là chữ số (0–9), không được nhập chữ.", "warning");
       return;
     }
 
@@ -1179,6 +1183,167 @@
     }
 
     document.getElementById("phishTotalScoreLabel").textContent = String(s.phishScore);
+  }
+
+  function openSimulatedLinkScreen(c, targetUrl, isAttachment) {
+    const overlay = document.getElementById("simScreenOverlay");
+    const urlEl = document.getElementById("simScreenUrl");
+    const tabEl = document.getElementById("simScreenTabTitle");
+    const bodyEl = document.getElementById("simScreenBody");
+    const lockEl = document.getElementById("simScreenLockIcon");
+    if (!overlay || !urlEl || !tabEl || !bodyEl) return;
+
+    const displayUrl =
+      targetUrl ||
+      (isAttachment && c.attachmentName ? `file://Downloads/${c.attachmentName}` : "") ||
+      c.breachPreview?.fakeUrl ||
+      "https://portal.tdmu.edu.vn";
+
+    urlEl.textContent = displayUrl;
+    if (lockEl) {
+      lockEl.style.color = displayUrl.startsWith("https://") ? "#137333" : "#B45309";
+    }
+
+    const stolenItems = (c.breachPreview?.stolenItems && c.breachPreview.stolenItems.length)
+      ? c.breachPreview.stolenItems
+      : ["Tài khoản & mật khẩu đăng nhập", "Mã OTP / dữ liệu cá nhân"];
+
+    const buildDangerAlertHtml = (heading, desc) => `
+      <div class="sim-breach-inline-warn" id="simInlineBreachWarn">
+        <h5>${escapeHtml(heading)}</h5>
+        <p style="margin:0;font-size:0.86rem;color:#7F1D1D;">${escapeHtml(desc)}</p>
+        <ul>
+          ${stolenItems.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+        </ul>
+      </div>`;
+
+    if (isAttachment || (c.attachmentName && displayUrl.includes(c.attachmentName))) {
+      const fileName = c.attachmentName || "Tep_dinh_kem.xlsm";
+      tabEl.textContent = `Trình xem tệp · ${fileName}`;
+      bodyEl.innerHTML = `
+        <div class="sim-page-card">
+          <div class="sim-excel-bar">
+            <span>Microsoft Excel (Protected View) · ${escapeHtml(fileName)}</span>
+            <span style="font-size:0.74rem;opacity:0.88;">248 KB</span>
+          </div>
+          <div class="sim-excel-macro-warn">
+            <span><strong>SECURITY WARNING:</strong> File tải từ Internet có chứa Macro tự động chạy.</span>
+            <button type="button" class="sim-btn-enable-macro" id="btnSimEnableMacro">Enable Content / Enable Macro</button>
+          </div>
+          <div class="sim-excel-sheet">
+            <div>Ô A1: <strong>DANH SÁCH SINH VIÊN CẢNH BÁO HỌC VỤ &amp; CÔNG NỢ 2026</strong></div>
+            <div class="sim-excel-blur">
+              Nội dung bảng tính đang bị ẩn.<br />
+              Hãy bấm <strong>Enable Content / Enable Macro</strong> ở thanh màu vàng phía trên để giải mã dữ liệu.
+            </div>
+            <div id="simInteractiveAlertHost"></div>
+          </div>
+        </div>`;
+
+      document.getElementById("btnSimEnableMacro")?.addEventListener("click", () => {
+        AudioEngine.wrong();
+        const host = document.getElementById("simInteractiveAlertHost");
+        if (host) {
+          host.innerHTML = buildDangerAlertHtml(
+            "MÔ PHỎNG: LỆNH MACRO ĐỘC HẠI VỪA CHẠY NGẦM!",
+            "Ngoài đời thật, thao tác bấm Enable Macro trên tệp .xlsm lạ sẽ lập tức thực thi mã độc trên máy tính của bạn:"
+          );
+        }
+      });
+    } else if (c.isPhishing) {
+      const lowerAll = `${c.title} ${c.subject} ${displayUrl}`.toLowerCase();
+      const isScholarship = lowerAll.includes("học bổng") || lowerAll.includes("hocbong");
+      const isAttendanceOtp = lowerAll.includes("điểm danh") || lowerAll.includes("diem-danh");
+
+      tabEl.textContent = isScholarship
+        ? "Cổng Xác Nhận Học Bổng TDMU"
+        : isAttendanceOtp
+        ? "Điểm Danh Nhanh & Xác Thực OTP"
+        : "Đăng nhập SSO Sinh viên · Cổng Ưu Đãi";
+
+      const bannerTitle = isScholarship
+        ? "CỔNG GIẢI NGÂN HỌC BỔNG KKHT 2026"
+        : isAttendanceOtp
+        ? "HỆ THỐNG ĐIỂM DANH DỰ PHÒNG (CẬP NHẬT NHANH)"
+        : "CỔNG XÁC THỰC SSO SINH VIÊN TDMU";
+
+      const formFieldsHtml = isScholarship
+        ? `
+          <div class="sim-fake-field"><label>Họ và tên sinh viên</label><input type="text" placeholder="Nguyễn Văn An" /></div>
+          <div class="sim-fake-field"><label>Số CCCD / CMND</label><input type="text" placeholder="074204xxxxxx" /></div>
+          <div class="sim-fake-field"><label>Số tài khoản ngân hàng</label><input type="text" placeholder="STK nhận 3.500.000đ" /></div>
+          <div class="sim-fake-field"><label>Mã OTP xác nhận giải ngân</label><input type="text" placeholder="Nhập OTP 6 số" /></div>`
+        : isAttendanceOtp
+        ? `
+          <div class="sim-fake-field"><label>Mã số sinh viên (MSSV)</label><input type="text" placeholder="2224802010001" /></div>
+          <div class="sim-fake-field"><label>Số điện thoại Zalo</label><input type="text" placeholder="09xxxxxxxx" /></div>
+          <div class="sim-fake-field" style="grid-column:1 / -1;"><label>Mã OTP 6 số vừa gửi về điện thoại</label><input type="text" placeholder="Nhập OTP để đồng bộ điểm danh" /></div>`
+        : `
+          <div class="sim-fake-field"><label>Email sinh viên (@student.tdmu.edu.vn)</label><input type="email" placeholder="2224802010001@student.tdmu.edu.vn" /></div>
+          <div class="sim-fake-field"><label>Mật khẩu SSO hiện tại</label><input type="password" placeholder="••••••••" /></div>`;
+
+      const submitText = isScholarship
+        ? "Xác nhận nhận 3.500.000đ ngay"
+        : isAttendanceOtp
+        ? "Gửi OTP & Điểm danh bù"
+        : "Đăng nhập SSO để kích hoạt ngay";
+
+      bodyEl.innerHTML = `
+        <div class="sim-page-card">
+          <div class="sim-page-banner is-urgent">
+            <div>
+              <div style="font-size:0.72rem;opacity:0.86;letter-spacing:0.04em;">ĐẠI HỌC THỦ DẦU MỘT (MÔ PHỎNG ĐÍCH ĐẾN)</div>
+              <div style="font-weight:700;font-size:1rem;">${bannerTitle}</div>
+            </div>
+            <span style="font-size:0.74rem;background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:999px;">Khẩn cấp</span>
+          </div>
+          <div class="sim-page-body">
+            <h4>Vui lòng điền đầy đủ thông tin để hoàn tất xác minh</h4>
+            <p>Hệ thống yêu cầu xác thực thông tin cá nhân trực tiếp qua biểu mẫu dưới đây trước khi hết thời hạn.</p>
+            <div class="sim-fake-form-grid">${formFieldsHtml}</div>
+            <button type="button" class="sim-fake-submit" id="btnSimFakeSubmit">${submitText}</button>
+            <div id="simInteractiveAlertHost"></div>
+          </div>
+        </div>`;
+
+      document.getElementById("btnSimFakeSubmit")?.addEventListener("click", () => {
+        AudioEngine.wrong();
+        const host = document.getElementById("simInteractiveAlertHost");
+        if (host) {
+          host.innerHTML = buildDangerAlertHtml(
+            "MÔ PHỎNG: DỮ LIỆU VỪA BỊ GỬI SANG TÊN MIỀN LẠ!",
+            `Hãy nhìn lại thanh địa chỉ URL ở trên (${displayUrl}). Nếu nhập thật ở trang này, kẻ gian có thể thu thập:`
+          );
+        }
+      });
+    } else {
+      tabEl.textContent = "Cổng Chính Thức · TDMU";
+      bodyEl.innerHTML = `
+        <div class="sim-page-card">
+          <div class="sim-page-banner is-safe">
+            <div>
+              <div style="font-size:0.72rem;opacity:0.9;letter-spacing:0.04em;">TRƯỜNG ĐẠI HỌC THỦ DẦU MỘT · HTTPS XÁC THỰC</div>
+              <div style="font-weight:700;font-size:1rem;">${escapeHtml(c.subject)}</div>
+            </div>
+            <span style="font-size:0.74rem;background:rgba(255,255,255,0.22);padding:4px 10px;border-radius:999px;">tdmu.edu.vn</span>
+          </div>
+          <div class="sim-page-body">
+            <h4>Trang thông tin học tập chính thức</h4>
+            <p>Đơn vị phát hành: <strong>${escapeHtml(c.senderName)}</strong>. Trang này chỉ hiển thị thông báo học vụ / hướng dẫn kỹ thuật, không chứa biểu mẫu đòi CCCD, tài khoản ngân hàng hay mã OTP.</p>
+            <ul class="sim-safe-meta-list">
+              <li><strong>Tên miền đích:</strong> <code>${escapeHtml(displayUrl)}</code></li>
+              <li><strong>Yêu cầu mật khẩu / OTP qua form lạ:</strong> Không có</li>
+              <li><strong>Tệp thực thi đáng ngờ:</strong> Không có</li>
+            </ul>
+          </div>
+        </div>`;
+    }
+
+    overlay.classList.remove("hidden");
+  }
+
+  function closeSimulatedLinkScreen() {
+    document.getElementById("simScreenOverlay")?.classList.add("hidden");
   }
 
   function openBreachOverlay(c, clickedUrl) {
@@ -1975,6 +2140,16 @@
       showToast(state.muted ? "Đã tắt âm thanh" : "Đã bật âm thanh");
     });
 
+    // Strict numeric-only constraint for MSSV
+    document.getElementById("inputPlayerMssv").addEventListener("input", (e) => {
+      const raw = e.target.value;
+      const digitsOnly = raw.replace(/\D+/g, "");
+      if (raw !== digitsOnly) {
+        e.target.value = digitsOnly;
+        showToast("MSSV chỉ được nhập chữ số (0–9).", "warning");
+      }
+    });
+
     // Mode Hub buttons
     document.querySelectorAll("[data-start-mode]").forEach((btn) => {
       btn.addEventListener("click", () => startGameSession(btn.dataset.startMode));
@@ -1987,21 +2162,28 @@
     });
     document.getElementById("btnQuizNext").addEventListener("click", finishOrProceedFromQuiz);
 
-    // Phishing Simulator Events (Click-Trap only — NO URL Inspector)
+    // Phishing Simulator Events (Click opens simulated destination preview — grading happens only on Trust/Block)
     const simShell = document.getElementById("phishSimShell");
     simShell.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (link) {
         e.preventDefault();
+        const c = state.data.phishingCases[state.session?.phishIndex];
         const url = link.getAttribute("data-real-url") || "";
-        resolvePhishingInteraction("click_trap", url);
+        if (c) openSimulatedLinkScreen(c, url, false);
         return;
       }
       const attach = e.target.closest("#btnSimAttachment");
       if (attach) {
         const c = state.data.phishingCases[state.session?.phishIndex];
-        resolvePhishingInteraction("click_trap", c ? `file://${c.attachmentName}` : "");
+        if (c) openSimulatedLinkScreen(c, c.attachmentName ? `file://Downloads/${c.attachmentName}` : "", true);
       }
+    });
+
+    document.getElementById("btnCloseSimScreen")?.addEventListener("click", closeSimulatedLinkScreen);
+    document.getElementById("btnSimDotClose")?.addEventListener("click", closeSimulatedLinkScreen);
+    document.getElementById("simScreenOverlay")?.addEventListener("click", (e) => {
+      if (e.target.id === "simScreenOverlay") closeSimulatedLinkScreen();
     });
 
     document.getElementById("btnPhishTrust").addEventListener("click", () => resolvePhishingInteraction("trust"));
