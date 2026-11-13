@@ -370,19 +370,26 @@ body {
 
 .form-row-entry {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 14px;
-  margin-bottom: 18px;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .form-group { margin-bottom: 12px; }
-.form-row-entry .form-group { margin-bottom: 0; }
+.form-row-entry .form-group { margin-bottom: 0; min-width: 0; }
 .form-group label {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--ink);
   margin-bottom: 6px;
+  line-height: 1.35;
+}
+.form-row-entry .form-group label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .req { color: var(--red); }
 
@@ -1932,9 +1939,27 @@ body {
 }
 
 @media (max-width: 640px) {
+  .topbar-inner { padding: 10px 14px; gap: 8px; }
+  .brand-school { display: none; }
+  .brand-title { font-size: 0.88rem; }
+  .btn-top { padding: 6px 11px; font-size: 0.78rem; }
+  .main-wrap { padding: 18px 14px 48px; }
+  .entry-shell { margin-top: 6px; }
+  .entry-hero { margin-bottom: 18px; }
+  .entry-hero h1 { font-size: 1.55rem; }
+  .entry-sub { font-size: 0.9rem; }
+  .entry-card { padding: 20px 18px; }
   .form-row-entry, .quiz-options-grid, .phish-action-bar, .result-stats-grid, .podium-grid, .settings-grid, .form-row-2, .sim-fake-form-grid {
     grid-template-columns: 1fr;
   }
+  .btn-block-xl { padding: 14px 16px; font-size: 0.92rem; }
+  .entry-secondary-modes { flex-direction: column; align-items: stretch; gap: 10px; }
+  .sec-label { text-align: center; }
+  .sec-btns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-ghost-pill { justify-content: center; width: 100%; }
+  .hud-bar { padding: 12px 14px; }
+  .hud-metrics { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .metric-pill { min-width: 0; padding: 6px 8px; }
   .stage-preview-row { flex-direction: column; align-items: flex-start; }
   .stage-arrow { transform: rotate(90deg); }
   .card { padding: 18px; }

@@ -690,8 +690,10 @@
 
     const qCount = state.data.quizQuestions.length;
     const pCount = state.data.phishingCases.length;
-    document.getElementById("countComboQuiz").textContent = String(qCount);
-    document.getElementById("countComboPhish").textContent = String(pCount);
+    const cQuizEl = document.getElementById("countComboQuiz");
+    const cPhishEl = document.getElementById("countComboPhish");
+    if (cQuizEl) cQuizEl.textContent = String(qCount);
+    if (cPhishEl) cPhishEl.textContent = String(pCount);
     document.getElementById("countOnlyQuiz").textContent = String(qCount);
     document.getElementById("countOnlyPhish").textContent = String(pCount);
 
