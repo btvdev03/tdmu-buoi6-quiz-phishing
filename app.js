@@ -623,6 +623,7 @@
       player,
       muted: false,
       activeView: "entry",
+      lbFilter: "all",
       teacherUnlocked: false,
       teacherTab: "import",
       session: null,
@@ -703,7 +704,7 @@
     if (syncPill) {
       if (state.data.meta.leaderboardEndpoint) {
         syncPill.classList.remove("hidden");
-        syncPill.textContent = "☁️ Đã kết nối Bảng Xếp Hạng Online của lớp";
+        syncPill.textContent = "Đã kết nối Bảng xếp hạng trực tuyến";
       } else {
         syncPill.classList.add("hidden");
       }
@@ -711,7 +712,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 6. GAME SESSION START & QUIZ ENGINE
+  // 6. GAME SESSION START (PHISHING -> QUIZ) & QUIZ ENGINE
   // --------------------------------------------------------------------------
   function startGameSession(mode) {
     const nameEl = document.getElementById("inputPlayerName");
@@ -724,16 +725,25 @@
       void nameEl.offsetWidth;
       nameEl.classList.add("input-error");
       nameEl.focus();
-      showToast("Vui lòng nhập Họ và Tên trước khi bắt đầu!", "warning");
+      showToast("Vui lòng nhập Họ và Tên trước khi bắt đầu.", "warning");
+      return;
+    }
+
+    if (!mssv) {
+      mssvEl.classList.remove("input-error");
+      void mssvEl.offsetWidth;
+      mssvEl.classList.add("input-error");
+      mssvEl.focus();
+      showToast("Vui lòng nhập Mã số sinh viên (MSSV) trước khi bắt đầu.", "warning");
       return;
     }
 
     if (mode !== "phishing" && !state.data.quizQuestions.length) {
-      showToast("Chưa có câu hỏi Quiz nào!", "error");
+      showToast("Chưa có câu hỏi Quiz nào.", "error");
       return;
     }
     if (mode !== "quiz" && !state.data.phishingCases.length) {
-      showToast("Chưa có tình huống Phishing nào!", "error");
+      showToast("Chưa có tình huống Phishing nào.", "error");
       return;
     }
 
@@ -744,7 +754,7 @@
       id: genId("run"),
       mode, // "combo" | "quiz" | "phishing"
       name,
-      mssv: mssv || "Tự do",
+      mssv,
       startedAt: Date.now(),
       quizIndex: 0,
       quizScore: 0,
@@ -760,12 +770,13 @@
       lastResultEntry: null
     };
 
-    if (mode === "phishing") {
-      showView("phishing");
-      renderPhishingCase();
-    } else {
+    if (mode === "quiz") {
       showView("quiz");
       renderQuizQuestion();
+    } else {
+      // Both "combo" and "phishing" start with Phishing Simulator first
+      showView("phishing");
+      renderPhishingCase();
     }
   }
 
@@ -787,10 +798,10 @@
     s.quizAnswered = false;
 
     document.getElementById("quizAvatar").textContent = s.name.charAt(0).toUpperCase();
-    document.getElementById("quizPlayerLabel").textContent = s.name;
-    document.getElementById("quizCategoryLabel").textContent = q.category;
+    document.getElementById("quizPlayerLabel").textContent = `${s.name} · ${s.mssv}`;
+    document.getElementById("quizCategoryLabel").textContent = `Phần 2 · ${q.category}`;
     document.getElementById("quizProgressLabel").textContent = `${s.quizIndex + 1} / ${s.quizTotal}`;
-    document.getElementById("quizStreakLabel").textContent = `🔥 ${s.streak}`;
+    document.getElementById("quizStreakLabel").textContent = String(s.streak);
     document.getElementById("quizScoreLabel").textContent = String(s.quizScore);
     document.getElementById("quizQuestionText").textContent = q.question;
 
@@ -875,9 +886,9 @@
       AudioEngine.wrong();
     }
 
-    document.getElementById("quizStreakLabel").textContent = `🔥 ${s.streak}`;
+    document.getElementById("quizStreakLabel").textContent = String(s.streak);
     document.getElementById("quizScoreLabel").textContent = String(s.quizScore);
-    document.getElementById("quizTimerStatus").textContent = chosenIndex === -1 ? "⏰ Hết giờ!" : "Đã chốt đáp án";
+    document.getElementById("quizTimerStatus").textContent = chosenIndex === -1 ? "Hết giờ" : "Đã chốt đáp án";
 
     document.querySelectorAll(".quiz-opt-btn").forEach((btn) => {
       const idx = Number(btn.dataset.optIdx);
@@ -901,23 +912,19 @@
     fbBox.classList.add(isCorrect ? "is-correct" : "is-wrong");
 
     if (isCorrect) {
-      fbTitle.textContent = `🎯 Chính xác! (+${q.points}đ gốc + ${speedBonus}đ tốc độ)`;
+      fbTitle.textContent = `Chính xác (+${q.points}đ gốc · +${speedBonus}đ tốc độ)`;
       fbPts.textContent = `+${earned}đ`;
     } else if (chosenIndex === -1) {
-      fbTitle.textContent = "⏰ Hết thời gian trả lời!";
+      fbTitle.textContent = "Hết thời gian trả lời";
       fbPts.textContent = "+0đ";
     } else {
-      fbTitle.textContent = "❌ Chưa chính xác!";
+      fbTitle.textContent = "Chưa chính xác";
       fbPts.textContent = "+0đ";
     }
     fbExp.textContent = q.explanation || "";
 
     const isLastQuiz = s.quizIndex >= s.quizTotal - 1;
-    if (isLastQuiz) {
-      nextBtn.textContent = s.mode === "combo" ? "🛡️ Chuyển sang Phishing Simulator →" : "🏆 Xem Kết Quả & Xếp Hạng";
-    } else {
-      nextBtn.textContent = "Câu tiếp theo →";
-    }
+    nextBtn.textContent = isLastQuiz ? "Xem kết quả & Xếp hạng" : "Câu tiếp theo →";
   }
 
   function finishOrProceedFromQuiz() {
@@ -925,9 +932,6 @@
     if (s.quizIndex < s.quizTotal - 1) {
       s.quizIndex += 1;
       renderQuizQuestion();
-    } else if (s.mode === "combo") {
-      showView("phishing");
-      renderPhishingCase();
     } else {
       completeSession();
     }
@@ -946,11 +950,11 @@
     s.phishResolved = false;
 
     document.getElementById("phishAvatar").textContent = s.name.charAt(0).toUpperCase();
-    document.getElementById("phishPlayerLabel").textContent = s.name;
-    document.getElementById("phishCaseTitle").textContent = c.title;
+    document.getElementById("phishPlayerLabel").textContent = `${s.name} · ${s.mssv}`;
+    document.getElementById("phishCaseTitle").textContent = `Phần 1 · ${c.title}`;
     document.getElementById("phishProgressLabel").textContent = `${s.phishIndex + 1} / ${s.phishTotal}`;
     document.getElementById("phishDiffLabel").textContent = c.difficulty;
-    document.getElementById("phishTotalScoreLabel").textContent = String(s.quizScore + s.phishScore);
+    document.getElementById("phishTotalScoreLabel").textContent = String(s.phishScore);
 
     // Enable action buttons
     const trustBtn = document.getElementById("btnPhishTrust");
@@ -961,8 +965,9 @@
     const safeBody = sanitizeRichHtml(c.bodyHtml);
     const attachHtml = c.attachmentName
       ? `<button type="button" class="sim-attachment-bar" id="btnSimAttachment" title="Bấm để mở/tải tệp đính kèm">
-           <span>📎 ${escapeHtml(c.attachmentName)}</span>
-           <span style="font-size:0.75rem;opacity:0.85;">(Bấm để mở)</span>
+           <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+           <span>${escapeHtml(c.attachmentName)}</span>
+           <span style="font-size:0.74rem;opacity:0.7;">(Mở tệp)</span>
          </button>`
       : "";
 
@@ -974,29 +979,29 @@
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="sim-ava" style="background:#fff;color:#0068FF;">${initial}</div>
             <div>
-              <div style="font-weight:800;">${escapeHtml(c.senderName)}</div>
+              <div style="font-weight:700;">${escapeHtml(c.senderName)}</div>
               <div style="font-size:0.76rem;opacity:0.9;">${escapeHtml(c.senderAddress)}</div>
             </div>
           </div>
-          <span style="font-size:0.76rem;font-weight:800;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:6px;">ZALO</span>
+          <span style="font-size:0.74rem;font-weight:700;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:6px;">ZALO</span>
         </div>
         <div class="sim-zalo-wrap">
           <div class="sim-zalo-bubble">
             <div class="sim-body" style="padding:0;">${safeBody}</div>
-            <div style="font-size:0.75rem;color:#64748B;margin-top:8px;">${escapeHtml(c.time)}</div>
+            <div style="font-size:0.75rem;color:#6E6E73;margin-top:8px;">${escapeHtml(c.time)}</div>
           </div>
           ${attachHtml ? `<div style="margin-top:12px;">${attachHtml}</div>` : ""}
         </div>`;
     } else if (c.channel === "lms") {
       skinHtml = `
         <div class="sim-lms-head">
-          <span>🎓 CỔNG THÔNG TIN TDMU</span>
-          <span style="font-size:0.76rem;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:6px;">LMS / PORTAL</span>
+          <span>CỔNG THÔNG TIN TDMU</span>
+          <span style="font-size:0.74rem;background:rgba(255,255,255,0.18);padding:3px 8px;border-radius:6px;">LMS / PORTAL</span>
         </div>
-        <div class="sim-lms-url">🔒 ${escapeHtml(c.senderAddress)}</div>
+        <div class="sim-lms-url">${escapeHtml(c.senderAddress)}</div>
         <div class="sim-email-head">
           <h3 class="sim-subject">${escapeHtml(c.subject)}</h3>
-          <div style="font-size:0.85rem;color:#475569;">Người gửi: <strong>${escapeHtml(c.senderName)}</strong> · ${escapeHtml(c.time)}</div>
+          <div style="font-size:0.84rem;color:#6E6E73;">Người gửi: <strong>${escapeHtml(c.senderName)}</strong> · ${escapeHtml(c.time)}</div>
         </div>
         <div class="sim-body">${safeBody}</div>
         ${attachHtml}`;
@@ -1004,7 +1009,7 @@
       skinHtml = `
         <div class="sim-email-bar">
           <div class="dots"><span></span><span></span><span></span></div>
-          <span>Hộp thư đến · Email Simulator</span>
+          <span>Hộp thư đến</span>
           <strong>EMAIL</strong>
         </div>
         <div class="sim-email-head">
@@ -1013,30 +1018,26 @@
             <div class="sim-sender-left">
               <div class="sim-ava">${initial}</div>
               <div>
-                <div style="font-weight:800;">${escapeHtml(c.senderName)}</div>
+                <div style="font-weight:600;">${escapeHtml(c.senderName)}</div>
                 <span class="sim-addr">&lt;${escapeHtml(c.senderAddress)}&gt;</span>
               </div>
             </div>
-            <span style="font-size:0.82rem;color:#64748B;">${escapeHtml(c.time)}</span>
+            <span style="font-size:0.82rem;color:#6E6E73;">${escapeHtml(c.time)}</span>
           </div>
         </div>
         <div class="sim-body">${safeBody}</div>
         ${attachHtml}`;
     }
 
-    document.getElementById("phishSimShell").innerHTML = `
-      ${skinHtml}
-      <div class="link-inspector" id="linkInspectorBar">
-        <span class="inspector-tag">🔎 SOI LINK:</span>
-        <span class="inspector-url" id="linkInspectorUrl">Rê chuột vào liên kết để kiểm tra URL thật...</span>
-      </div>`;
+    document.getElementById("phishSimShell").innerHTML = skinHtml;
 
     document.getElementById("phishResultPanel").innerHTML = `
       <div class="phish-waiting-box">
-        <div style="font-size:2.4rem;margin-bottom:8px;">🕵️‍♂️</div>
-        <h3>Hãy kiểm tra kỹ trước khi quyết định!</h3>
-        <p class="muted">Kiểm tra <strong>người gửi</strong>, rê chuột soi <strong>URL thật</strong>, xem <strong>file đính kèm</strong> và <strong>dữ liệu bị yêu cầu</strong>.</p>
-        <p class="muted" style="font-size:0.86rem;">⚠️ Nếu bạn bấm nhầm vào link lừa đảo hoặc tệp đính kèm độc hại trong khung bên trái, cảnh báo xâm nhập sẽ kích hoạt ngay lập tức!</p>
+        <div class="waiting-icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3>Quan sát kỹ trước khi chọn</h3>
+        <p class="muted">Đánh giá theo 6 dấu hiệu <strong>A–F</strong>: người gửi, độ khẩn cấp, đường dẫn, tệp đính kèm và dữ liệu được yêu cầu.</p>
       </div>`;
   }
 
@@ -1057,27 +1058,27 @@
         s.phishScore += TRUST_POINTS;
         s.phishCorrect += 1;
         AudioEngine.safe();
-        renderPhishFeedback("good", `🛡️ TUYỆT VỜI! Bạn đã phát hiện và chặn đứng Phishing (+${TRUST_POINTS}đ)`);
+        renderPhishFeedback("good", `Phát hiện và chặn đứng Phishing chính xác (+${TRUST_POINTS}đ)`);
       } else {
         // SẬP BẪY! -> BÙNG RED ALERT BREACH OVERLAY!
         AudioEngine.siren();
         openBreachOverlay(c, clickedUrl);
-        renderPhishFeedback("bad", "🚨 BẠN ĐÃ SẬP BẪY PHISHING! (0đ) — Hãy xem kỹ 6 dấu hiệu bên dưới để rút kinh nghiệm.");
+        renderPhishFeedback("bad", "Bạn đã sập bẫy Phishing (0đ) — Xem kỹ 6 dấu hiệu bên dưới.");
       }
     } else {
       // Real safe case (isPhishing === false)
       if (actionType === "block") {
         AudioEngine.wrong();
-        renderPhishFeedback("warn", "⚠️ Báo nhầm rồi! Đây là thông báo thật của trường — bạn vừa tự chặn thông báo quan trọng! (0đ)");
+        renderPhishFeedback("warn", "Báo nhầm: đây là thông báo chính thức an toàn của nhà trường (0đ).");
       } else {
         s.phishScore += TRUST_POINTS;
         s.phishCorrect += 1;
         AudioEngine.safe();
-        renderPhishFeedback("good", `✅ CHÍNH XÁC! Đây là thông báo chính thức an toàn của nhà trường (+${TRUST_POINTS}đ)`);
+        renderPhishFeedback("good", `Chính xác: đây là thông báo an toàn từ nhà trường (+${TRUST_POINTS}đ)`);
       }
     }
 
-    document.getElementById("phishTotalScoreLabel").textContent = String(s.quizScore + s.phishScore);
+    document.getElementById("phishTotalScoreLabel").textContent = String(s.phishScore);
   }
 
   function openBreachOverlay(c, clickedUrl) {
@@ -1110,11 +1111,14 @@
     };
 
     const isLast = s.phishIndex >= s.phishTotal - 1;
-    const nextLabel = isLast ? "🏆 Hoàn Thành & Xem Kết Quả" : "Tình huống tiếp theo →";
+    let nextLabel = "Tình huống tiếp theo →";
+    if (isLast) {
+      nextLabel = s.mode === "combo" ? "Sang Phần 2: Quiz Nhanh →" : "Xem kết quả & Xếp hạng";
+    }
 
     document.getElementById("phishResultPanel").innerHTML = `
       <div class="verdict-box verdict-${variant}">${escapeHtml(headline)}</div>
-      <h4 style="margin:0 0 10px;">🔍 Phân tích 6 dấu hiệu A → F</h4>
+      <h4 style="margin:0 0 10px;">Phân tích 6 dấu hiệu A → F</h4>
       <div class="signs-list">
         ${["A", "B", "C", "D", "E", "F"]
           .map(
@@ -1126,7 +1130,7 @@
           )
           .join("")}
       </div>
-      ${c.takeaway ? `<div class="takeaway-box"><strong>💡 Ghi nhớ:</strong> ${escapeHtml(c.takeaway)}</div>` : ""}
+      ${c.takeaway ? `<div class="takeaway-box"><strong>Ghi nhớ:</strong> ${escapeHtml(c.takeaway)}</div>` : ""}
       <div style="margin-top:14px;display:flex;justify-content:flex-end;">
         <button type="button" class="btn btn-primary btn-lg" id="btnPhishNext">${nextLabel}</button>
       </div>`;
@@ -1185,30 +1189,25 @@
   }
 
   function buildResultCopyString(entry) {
-    return `[BUOI6-KQ] ${entry.name} | ${entry.mssv || "Tự do"} | Quiz: ${entry.quizScore} (${entry.quizCorrect}/${entry.quizTotal}) | Phish: ${entry.phishScore} (${entry.phishCorrect}/${entry.phishTotal}) | Tổng: ${entry.totalScore} | ${entry.durationSec}s`;
+    return `[BUOI6-KQ] ${entry.name} | ${entry.mssv || "Chưa có MSSV"} | Phish: ${entry.phishScore} (${entry.phishCorrect}/${entry.phishTotal}) | Quiz: ${entry.quizScore} (${entry.quizCorrect}/${entry.quizTotal}) | Tổng: ${entry.totalScore} | ${entry.durationSec}s`;
   }
 
   function renderResultView(entry) {
     const maxPossible = entry.quizTotal * 150 + entry.phishTotal * 150;
     const ratio = maxPossible > 0 ? entry.totalScore / maxPossible : 0;
 
-    let crown = "🌱";
-    let rankTitle = "Tân binh An ninh số";
+    let rankTitle = "Tân binh An toàn số";
     if (ratio >= 0.8) {
-      crown = "🏆";
       rankTitle = "Chiến thần An toàn số";
     } else if (ratio >= 0.6) {
-      crown = "🛡️";
       rankTitle = "Vệ sĩ Mạng TDMU";
     } else if (ratio >= 0.4) {
-      crown = "⚡";
-      rankTitle = "Tín đồ AI Cảnh giác";
+      rankTitle = "Chủ động Cảnh giác";
     }
 
-    document.getElementById("resultCrown").textContent = crown;
     document.getElementById("resultRankTitle").textContent = rankTitle;
     document.getElementById("resultPlayerHeading").textContent = entry.name;
-    document.getElementById("resultPlayerSub").textContent = `MSSV / Nhóm: ${entry.mssv}`;
+    document.getElementById("resultPlayerSub").textContent = `MSSV: ${entry.mssv}`;
 
     document.getElementById("resQuizScore").textContent = String(entry.quizScore);
     document.getElementById("resQuizDetail").textContent = `${entry.quizCorrect}/${entry.quizTotal} câu đúng`;
@@ -1268,18 +1267,49 @@
   }
 
   // --------------------------------------------------------------------------
-  // 9. LEADERBOARD VIEW
+  // 9. LEADERBOARD VIEW (SEPARATED ALL / PHISHING / QUIZ)
   // --------------------------------------------------------------------------
-  function getSortedLeaderboard() {
-    return [...state.leaderboard].sort((a, b) => {
-      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+  function getSortedLeaderboard(filter = "all") {
+    const base = state.leaderboard.filter((e) => {
+      if (filter === "phishing") return (e.phishTotal || 0) > 0 || (e.phishScore || 0) > 0;
+      if (filter === "quiz") return (e.quizTotal || 0) > 0 || (e.quizScore || 0) > 0;
+      return true;
+    });
+
+    return base.sort((a, b) => {
+      if (filter === "phishing") {
+        if ((b.phishScore || 0) !== (a.phishScore || 0)) return (b.phishScore || 0) - (a.phishScore || 0);
+        if ((b.phishCorrect || 0) !== (a.phishCorrect || 0)) return (b.phishCorrect || 0) - (a.phishCorrect || 0);
+      } else if (filter === "quiz") {
+        if ((b.quizScore || 0) !== (a.quizScore || 0)) return (b.quizScore || 0) - (a.quizScore || 0);
+        if ((b.quizCorrect || 0) !== (a.quizCorrect || 0)) return (b.quizCorrect || 0) - (a.quizCorrect || 0);
+      } else {
+        if ((b.totalScore || 0) !== (a.totalScore || 0)) return (b.totalScore || 0) - (a.totalScore || 0);
+      }
       return (a.durationSec || 9999) - (b.durationSec || 9999);
     });
   }
 
   function renderLeaderboardView() {
     renderHeaderMeta();
-    const sorted = getSortedLeaderboard();
+    const filter = state.lbFilter || "all";
+    const sorted = getSortedLeaderboard(filter);
+
+    document.querySelectorAll(".seg-btn[data-lb-filter]").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.lbFilter === filter);
+    });
+
+    const subtitleMap = {
+      all: "Xếp hạng tổng hợp cả Phần 1 (Phishing) và Phần 2 (Quiz)",
+      phishing: "Bảng xếp hạng riêng Phần 1: Phishing Simulator",
+      quiz: "Bảng xếp hạng riêng Phần 2: Quiz Nhanh Buổi 6"
+    };
+    const subEl = document.getElementById("lbSortSubtitle");
+    if (subEl) subEl.textContent = subtitleMap[filter] || subtitleMap.all;
+
+    document.getElementById("thLbPhish")?.classList.toggle("col-focus", filter === "phishing");
+    document.getElementById("thLbQuiz")?.classList.toggle("col-focus", filter === "quiz");
+    document.getElementById("thLbTotal")?.classList.toggle("col-focus", filter === "all");
 
     const cloudBtn = document.getElementById("btnRefreshCloudLb");
     if (cloudBtn) {
@@ -1287,28 +1317,40 @@
     }
 
     const podium = document.getElementById("podiumGrid");
-    const medals = ["🥇", "🥈", "🥉"];
     if (!sorted.length) {
       podium.innerHTML = "";
     } else {
       podium.innerHTML = sorted
         .slice(0, 3)
-        .map(
-          (e, i) => `
-        <div class="podium-card podium-${i + 1}">
-          <div class="podium-medal">${medals[i]}</div>
-          <div class="podium-name">${escapeHtml(e.name)}</div>
-          <div style="font-size:0.8rem;color:var(--muted);">${escapeHtml(e.mssv)}</div>
-          <div class="podium-score">${e.totalScore}đ</div>
-          <div style="font-size:0.78rem;color:var(--muted);">⏱️ ${e.durationSec}s · Quiz ${e.quizScore} + Phish ${e.phishScore}</div>
-        </div>`
-        )
+        .map((e, i) => {
+          const mainScore =
+            filter === "phishing"
+              ? `${e.phishScore}đ`
+              : filter === "quiz"
+              ? `${e.quizScore}đ`
+              : `${e.totalScore}đ`;
+          const subLine =
+            filter === "phishing"
+              ? `${e.phishCorrect}/${e.phishTotal} ca chuẩn · ${e.durationSec}s`
+              : filter === "quiz"
+              ? `${e.quizCorrect}/${e.quizTotal} câu đúng · ${e.durationSec}s`
+              : `Phish ${e.phishScore} · Quiz ${e.quizScore} · ${e.durationSec}s`;
+
+          return `
+            <div class="podium-card podium-${i + 1}">
+              <div class="podium-rank-num">${i + 1}</div>
+              <div class="podium-name">${escapeHtml(e.name)}</div>
+              <div style="font-size:0.8rem;color:var(--muted);">${escapeHtml(e.mssv)}</div>
+              <div class="podium-score">${mainScore}</div>
+              <div style="font-size:0.78rem;color:var(--muted);">${subLine}</div>
+            </div>`;
+        })
         .join("");
     }
 
     const tbody = document.getElementById("leaderboardTableBody");
     if (!sorted.length) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Chưa có dữ liệu xếp hạng. Hãy chơi thử hoặc để Giảng viên nhập kết quả từ Chat Meet/Zoom!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Chưa có dữ liệu xếp hạng cho mục này.</td></tr>`;
       return;
     }
 
@@ -1317,14 +1359,14 @@
       .map(
         (e, i) => `
       <tr>
-        <td><strong>${medals[i] || `#${i + 1}`}</strong></td>
+        <td><strong>#${i + 1}</strong></td>
         <td><strong>${escapeHtml(e.name)}</strong></td>
         <td>${escapeHtml(e.mssv)}</td>
         <td>${escapeHtml(modeMap[e.mode] || e.mode || "Trọn bộ")}</td>
-        <td>${e.quizScore} (${e.quizCorrect}/${e.quizTotal})</td>
-        <td>${e.phishScore} (${e.phishCorrect}/${e.phishTotal})</td>
+        <td class="${filter === "phishing" ? "col-focus" : ""}">${e.phishScore}đ <span style="color:var(--muted);font-weight:400;">(${e.phishCorrect}/${e.phishTotal})</span></td>
+        <td class="${filter === "quiz" ? "col-focus" : ""}">${e.quizScore}đ <span style="color:var(--muted);font-weight:400;">(${e.quizCorrect}/${e.quizTotal})</span></td>
         <td>${e.durationSec}s</td>
-        <td><strong style="color:var(--navy);font-family:var(--mono);">${e.totalScore}đ</strong></td>
+        <td class="${filter === "all" ? "col-focus" : ""}" style="font-family:var(--mono);"><strong>${e.totalScore}đ</strong></td>
       </tr>`
       )
       .join("");
@@ -1394,12 +1436,12 @@
     }
 
     openModal(
-      "🔐 Xác Thực Giảng Viên",
+      "Xác thực Giảng viên",
       `<form id="formTeacherPin">
         <p class="muted">Nhập mã PIN giảng viên để mở Bảng điều khiển, nhập hàng loạt kết quả chat lớp và chỉnh sửa bộ đề (Mặc định: <code>2026</code>).</p>
         <div class="form-group">
           <label for="inputTeacherPin">Mã PIN</label>
-          <input type="password" id="inputTeacherPin" class="input-lg" placeholder="Nhập mã PIN..." autofocus required />
+          <input type="password" id="inputTeacherPin" class="input-apple" placeholder="Nhập mã PIN..." autofocus required />
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;">
           <button type="button" class="btn btn-outline js-close-modal">Hủy</button>
@@ -1441,29 +1483,19 @@
   }
 
   function parseBulkMeetChat(rawText) {
-    // Matches: [BUOI6-KQ] Tên | MSSV | Quiz: 850 (8/10) | Phish: 750 (5/6) | Tổng: 1600 | 112s
-    const regex = /\[BUOI6-KQ\]\s*([^|\r\n]+?)\s*\|\s*([^|\r\n]*?)\s*\|\s*Quiz:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Phish:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Tổng:\s*(\d+)\s*\|\s*(\d+)s/gi;
-    let match;
+    // Supports both [BUOI6-KQ] Name | MSSV | Phish: ... | Quiz: ... | Tổng: ... | ...s
+    // and [BUOI6-KQ] Name | MSSV | Quiz: ... | Phish: ... | Tổng: ... | ...s
+    const regexPhishFirst = /\[BUOI6-KQ\]\s*([^|\r\n]+?)\s*\|\s*([^|\r\n]*?)\s*\|\s*Phish:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Quiz:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Tổng:\s*(\d+)\s*\|\s*(\d+)s/gi;
+    const regexQuizFirst = /\[BUOI6-KQ\]\s*([^|\r\n]+?)\s*\|\s*([^|\r\n]*?)\s*\|\s*Quiz:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Phish:\s*(\d+)\s*\((\d+)\/(\d+)\)\s*\|\s*Tổng:\s*(\d+)\s*\|\s*(\d+)s/gi;
+
     let imported = 0;
     let updated = 0;
 
-    while ((match = regex.exec(rawText)) !== null) {
-      const name = match[1].trim();
-      const mssv = match[2].trim() || "Tự do";
-      const quizScore = Number(match[3]);
-      const quizCorrect = Number(match[4]);
-      const quizTotal = Number(match[5]);
-      const phishScore = Number(match[6]);
-      const phishCorrect = Number(match[7]);
-      const phishTotal = Number(match[8]);
-      const totalScore = Number(match[9]);
-      const durationSec = Number(match[10]);
-
+    function upsertParsed(name, mssv, phishScore, phishCorrect, phishTotal, quizScore, quizCorrect, quizTotal, totalScore, durationSec) {
       const dedupeKey = `chat-${name.toLowerCase()}-${mssv.toLowerCase()}`;
       const existingIdx = state.leaderboard.findIndex(
         (x) => x.id === dedupeKey || (x.name.toLowerCase() === name.toLowerCase() && x.mssv.toLowerCase() === mssv.toLowerCase())
       );
-
       const mode = quizTotal > 0 && phishTotal > 0 ? "combo" : quizTotal > 0 ? "quiz" : "phishing";
       const record = {
         id: existingIdx >= 0 ? state.leaderboard[existingIdx].id : dedupeKey,
@@ -1481,9 +1513,7 @@
         source: "Chat Meet/Zoom",
         createdAt: new Date().toISOString()
       };
-
       if (existingIdx >= 0) {
-        // Keep the higher score if student submitted multiple times
         if (record.totalScore >= state.leaderboard[existingIdx].totalScore) {
           state.leaderboard[existingIdx] = record;
           updated++;
@@ -1494,13 +1524,33 @@
       }
     }
 
+    let match;
+    while ((match = regexPhishFirst.exec(rawText)) !== null) {
+      upsertParsed(
+        match[1].trim(),
+        match[2].trim() || "Tự do",
+        Number(match[3]), Number(match[4]), Number(match[5]),
+        Number(match[6]), Number(match[7]), Number(match[8]),
+        Number(match[9]), Number(match[10])
+      );
+    }
+    while ((match = regexQuizFirst.exec(rawText)) !== null) {
+      upsertParsed(
+        match[1].trim(),
+        match[2].trim() || "Tự do",
+        Number(match[6]), Number(match[7]), Number(match[8]),
+        Number(match[3]), Number(match[4]), Number(match[5]),
+        Number(match[9]), Number(match[10])
+      );
+    }
+
     saveLeaderboard();
     renderHeaderMeta();
     return { imported, updated };
   }
 
   function renderTeacherScoresTable() {
-    const sorted = getSortedLeaderboard();
+    const sorted = getSortedLeaderboard("all");
     const tbody = document.getElementById("teacherScoresTbody");
     if (!sorted.length) {
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px;">Chưa có kết quả nào.</td></tr>`;
@@ -1513,12 +1563,12 @@
         <td>${idx + 1}</td>
         <td><strong>${escapeHtml(e.name)}</strong></td>
         <td>${escapeHtml(e.mssv)}</td>
-        <td>${e.quizScore} (${e.quizCorrect}/${e.quizTotal})</td>
         <td>${e.phishScore} (${e.phishCorrect}/${e.phishTotal})</td>
+        <td>${e.quizScore} (${e.quizCorrect}/${e.quizTotal})</td>
         <td><strong>${e.totalScore}đ</strong></td>
         <td>${e.durationSec}s</td>
         <td>${escapeHtml(e.source || "Trực tiếp")}</td>
-        <td><button type="button" class="btn btn-danger-outline btn-sm js-del-score" data-id="${escapeHtml(e.id)}">✕</button></td>
+        <td><button type="button" class="btn btn-danger-outline btn-sm js-del-score" data-id="${escapeHtml(e.id)}">Xóa</button></td>
       </tr>`
       )
       .join("");
@@ -1563,12 +1613,12 @@
     quizList.innerHTML = state.data.quizQuestions
       .map(
         (q, i) => `
-      <div class="cms-row">
+      <div class="cms-item">
         <div>
-          <div class="cms-row-title">${i + 1}. ${escapeHtml(q.question)}</div>
-          <div class="cms-row-meta">${escapeHtml(q.category)} · ${q.timeLimitSec}s · ${q.points}đ · Đáp án đúng: ${["A", "B", "C", "D"][q.correctIndex]}</div>
+          <div class="cms-item-title">${i + 1}. ${escapeHtml(q.question)}</div>
+          <div class="cms-item-meta">${escapeHtml(q.category)} · ${q.timeLimitSec}s · ${q.points}đ · Đáp án: ${["A", "B", "C", "D"][q.correctIndex]}</div>
         </div>
-        <div class="cms-row-btns">
+        <div class="cms-item-btns">
           <button type="button" class="btn btn-outline btn-sm js-edit-quiz" data-id="${escapeHtml(q.id)}">Sửa</button>
           <button type="button" class="btn btn-danger-outline btn-sm js-del-quiz" data-id="${escapeHtml(q.id)}">Xóa</button>
         </div>
@@ -1580,12 +1630,12 @@
     phishList.innerHTML = state.data.phishingCases
       .map(
         (c, i) => `
-      <div class="cms-row">
+      <div class="cms-item">
         <div>
-          <div class="cms-row-title">${i + 1}. ${escapeHtml(c.title)}</div>
-          <div class="cms-row-meta">[${c.channel.toUpperCase()}] · ${c.isPhishing ? "🚨 PHISHING" : "✅ AN TOÀN"} · ${escapeHtml(c.difficulty)}</div>
+          <div class="cms-item-title">${i + 1}. ${escapeHtml(c.title)}</div>
+          <div class="cms-item-meta">[${c.channel.toUpperCase()}] · ${c.isPhishing ? "Phishing" : "An toàn"} · ${escapeHtml(c.difficulty)}</div>
         </div>
-        <div class="cms-row-btns">
+        <div class="cms-item-btns">
           <button type="button" class="btn btn-outline btn-sm js-edit-phish" data-id="${escapeHtml(c.id)}">Sửa</button>
           <button type="button" class="btn btn-danger-outline btn-sm js-del-phish" data-id="${escapeHtml(c.id)}">Xóa</button>
         </div>
@@ -1717,11 +1767,11 @@
         <div class="form-group">
           <div class="section-between" style="margin-bottom:4px;">
             <label style="margin:0;">Nội dung HTML (&lt;a href="#" data-real-url="..."&gt;)</label>
-            <button type="button" class="btn btn-teal btn-sm" id="btnAddTrapLink">+ Chèn link bẫy</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btnAddTrapLink">+ Chèn link bẫy</button>
           </div>
           <textarea name="bodyHtml" id="edPhishBody" class="textarea-lg" style="min-height:95px;">${escapeHtml(c.bodyHtml)}</textarea>
         </div>
-        <h4 style="margin:8px 0;color:var(--coral-dark);">Mô phỏng sự cố khi bấm nhầm bẫy (Breach Preview)</h4>
+        <h4 style="margin:8px 0;color:var(--red-dark);">Mô phỏng sự cố khi bấm nhầm bẫy (Breach Preview)</h4>
         <div class="form-row-2">
           <div class="form-group"><label>URL độc hại hiển thị</label><input name="fakeUrl" class="input-std" value="${escapeHtml(c.breachPreview?.fakeUrl || "")}" /></div>
           <div class="form-group"><label>Tiêu đề cảnh báo đỏ</label><input name="riskTitle" class="input-std" value="${escapeHtml(c.breachPreview?.riskTitle || "")}" /></div>
@@ -1730,7 +1780,7 @@
           <div class="form-group"><label>Dữ liệu mô phỏng bị trích xuất (mỗi dòng 1 mục)</label><textarea name="stolenItems" class="textarea-std">${escapeHtml(stolenStr)}</textarea></div>
           <div class="form-group"><label>Giải thích hậu quả thực tế</label><textarea name="riskDetail" class="textarea-std">${escapeHtml(c.breachPreview?.riskDetail || "")}</textarea></div>
         </div>
-        <h4 style="margin:8px 0;color:var(--navy);">Phân tích 6 dấu hiệu A–F &amp; Takeaway</h4>
+        <h4 style="margin:8px 0;color:var(--ink);">Phân tích 6 dấu hiệu A–F &amp; Takeaway</h4>
         <div class="form-row-2">
           <div class="form-group"><label>A — Người gửi</label><input name="signA" class="input-std" value="${escapeHtml(c.signs.A)}" /></div>
           <div class="form-group"><label>B — Nội dung gấp</label><input name="signB" class="input-std" value="${escapeHtml(c.signs.B)}" /></div>
@@ -1837,28 +1887,8 @@
     });
     document.getElementById("btnQuizNext").addEventListener("click", finishOrProceedFromQuiz);
 
-    // Phishing Simulator Events (Hover Link Inspector + Click-Trap!)
+    // Phishing Simulator Events (Click-Trap only — NO URL Inspector)
     const simShell = document.getElementById("phishSimShell");
-    simShell.addEventListener("mouseover", (e) => {
-      const link = e.target.closest("a");
-      if (!link) return;
-      const bar = document.getElementById("linkInspectorBar");
-      const urlSpan = document.getElementById("linkInspectorUrl");
-      if (bar && urlSpan) {
-        urlSpan.textContent = link.getAttribute("data-real-url") || link.getAttribute("href") || "(Không xác định)";
-        bar.classList.add("inspecting");
-      }
-    });
-    simShell.addEventListener("mouseout", (e) => {
-      if (e.target.closest("a")) {
-        const bar = document.getElementById("linkInspectorBar");
-        const urlSpan = document.getElementById("linkInspectorUrl");
-        if (bar && urlSpan) {
-          urlSpan.textContent = "Rê chuột vào liên kết để kiểm tra URL thật...";
-          bar.classList.remove("inspecting");
-        }
-      }
-    });
     simShell.addEventListener("click", (e) => {
       const link = e.target.closest("a");
       if (link) {
@@ -1886,10 +1916,19 @@
         if (s.phishIndex < s.phishTotal - 1) {
           s.phishIndex += 1;
           renderPhishingCase();
+        } else if (s.mode === "combo") {
+          document.getElementById("transPhishSummary").textContent = `Bạn đã xử lý chuẩn ${s.phishCorrect}/${s.phishTotal} tình huống và đạt ${s.phishScore} điểm.`;
+          document.getElementById("transQuizCount").textContent = String(s.quizTotal);
+          showView("transition");
         } else {
           completeSession();
         }
       }
+    });
+
+    document.getElementById("btnStartQuizStage").addEventListener("click", () => {
+      showView("quiz");
+      renderQuizQuestion();
     });
 
     // Result View Events
@@ -1918,11 +1957,17 @@
     document.getElementById("btnResultHome").addEventListener("click", () => showView("entry"));
 
     // Leaderboard View Events
+    document.querySelectorAll(".seg-btn[data-lb-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.lbFilter = btn.dataset.lbFilter;
+        renderLeaderboardView();
+      });
+    });
     document.getElementById("btnRefreshCloudLb").addEventListener("click", refreshCloudLeaderboard);
     document.getElementById("btnCelebrateWinner").addEventListener("click", () => {
       AudioEngine.fanfare();
       Confetti.launch();
-      showToast("🎉 Chúc mừng Top 1 lớp học hôm nay!", "success");
+      showToast("Chúc mừng Top 1 lớp học hôm nay!", "success");
     });
     document.getElementById("btnLbPlayEntry").addEventListener("click", () => showView("entry"));
 
@@ -1955,8 +2000,8 @@
 
     document.getElementById("btnFillSampleChat").addEventListener("click", () => {
       document.getElementById("bulkChatInput").value =
-        "19:42 Nguyễn Văn An: [BUOI6-KQ] Nguyễn Văn An | 222480201 | Quiz: 1280 (9/10) | Phish: 900 (6/6) | Tổng: 2180 | 115s\n" +
-        "19:43 Trần Thị Bình: Thầy ơi em nộp bài ạ [BUOI6-KQ] Trần Thị Bình | Nhóm 2 | Quiz: 1050 (8/10) | Phish: 750 (5/6) | Tổng: 1800 | 124s";
+        "19:42 Nguyễn Văn An: [BUOI6-KQ] Nguyễn Văn An | 222480201 | Phish: 900 (6/6) | Quiz: 1280 (9/10) | Tổng: 2180 | 115s\n" +
+        "19:43 Trần Thị Bình: Thầy ơi em nộp bài ạ [BUOI6-KQ] Trần Thị Bình | 222480202 | Phish: 750 (5/6) | Quiz: 1050 (8/10) | Tổng: 1800 | 124s";
     });
 
     document.getElementById("teacherScoresTbody").addEventListener("click", (e) => {
