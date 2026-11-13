@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Cổng Giảng Viên · Quản lý Buổi 6 | TDMU</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- RED ALERT BREACH OVERLAY (Triggered on Phishing trap click) -->
+  <div id="breachOverlay" class="breach-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="breachRiskTitle">
+    <div class="breach-modal">
+      <div class="breach-safety-banner">
+        <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span>MÔ PHỎNG GIÁO DỤC AN TOÀN — KHÔNG CÓ DỮ LIỆU THẬT BỊ GỬI ĐI</span>
+      </div>
+      <div class="breach-header">
+        <div class="breach-siren-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="breach-kicker">CẢNH BÁO BẢO MẬT · PHISHING DETECTED</div>
+          <h2 id="breachRiskTitle">Bạn vừa bấm vào liên kết / tệp độc hại</h2>
+        </div>
+      </div>
+
+      <div class="breach-url-box">
+        <span class="breach-url-label">Đích kết nối thực tế:</span>
+        <code id="breachFakeUrl">http://unknown-phish.xyz</code>
+      </div>
+
+      <div class="breach-sim-terminal">
+        <div class="terminal-title">Mô phỏng dữ liệu có nguy cơ bị lộ:</div>
+        <ul id="breachStolenList" class="stolen-list"></ul>
+      </div>
+
+      <div class="breach-detail-box">
+        <strong>Rủi ro thực tế nếu xảy ra ngoài đời</strong>
+        <p id="breachRiskDetail"></p>
+      </div>
+
+      <div class="breach-footer">
+        <span class="breach-score-badge">Điểm tình huống này: <strong>0đ</strong></span>
+        <button type="button" class="btn btn-light-danger btn-lg" id="btnCloseBreachToAnalysis">
+          <span>Xem phân tích 6 dấu hiệu A–F</span>
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLE FROSTED GLASS TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" id="btnBrandHome" role="button" tabindex="0" title="Về trang chủ">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-school" id="headerSchool">ĐH Thủ Dầu Một · Trung tâm Chuyển đổi số</div>
+          <div class="brand-title" id="headerSession">Buổi 6 · AI Mastery &amp; Phishing</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="btn-top hidden" id="btnBackHome">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Trang chủ</span>
+        </button>
+        <button type="button" class="btn-top" id="btnNavLeaderboard">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          <span>Bảng xếp hạng</span>
+          <span class="pill-count" id="topLeaderboardCount">0</span>
+        </button>
+        <button type="button" class="btn-top" id="btnOpenTeacherGate" title="Mở xác thực Giảng viên">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Quản lý</span>
+        </button>
+        <button type="button" class="btn-top-icon" id="btnToggleMute" title="Bật / Tắt âm thanh" aria-label="Âm thanh">
+          <svg id="iconSoundOn" class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="iconSoundOff" class="svg-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <!-- VIEW 1: MINIMALIST STUDENT ENTRY -->
+    <section id="view-entry" class="view-section active">
+      <div class="entry-shell">
+        <div class="entry-hero">
+          <div class="entry-kicker" id="entryCourseBadge">Năng lực số · Chuyên đề Công nghệ số</div>
+          <h1 id="entrySessionTitle">Phishing Lab &amp; Quiz Buổi 6</h1>
+          <p class="entry-sub">
+            Nhập thông tin sinh viên để bắt đầu 2 phần thử thách: nhận diện lừa đảo trực tuyến trước, sau đó hoàn thành 10 câu hỏi trắc nghiệm nhanh.
+          </p>
+          <div id="syncStatusPill" class="sync-pill hidden"></div>
+        </div>
+
+        <div class="card entry-card">
+          <div class="form-row-entry">
+            <div class="form-group">
+              <label for="inputPlayerName">Họ và Tên <span class="req">*</span></label>
+              <input type="text" id="inputPlayerName" class="input-apple" placeholder="Nguyễn Văn An" maxlength="60" autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label for="inputPlayerMssv">Mã số sinh viên (MSSV) <span class="req">*</span></label>
+              <input type="text" id="inputPlayerMssv" class="input-apple" placeholder="2224802010001" maxlength="30" />
+            </div>
+          </div>
+
+          <div class="stage-preview-row">
+            <div class="stage-chip">
+              <span class="stage-num">1</span>
+              <div>
+                <strong>Phần 1 · Phishing Simulator</strong>
+                <span class="muted-inline"><span id="countComboPhish">6</span> tình huống thực tế</span>
+              </div>
+            </div>
+            <svg class="svg-icon stage-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <div class="stage-chip">
+              <span class="stage-num">2</span>
+              <div>
+                <strong>Phần 2 · Quiz Nhanh</strong>
+                <span class="muted-inline"><span id="countComboQuiz">10</span> câu hỏi Buổi 6</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block-xl" data-start-mode="combo" id="btnStartChallenge">
+            <span>Bắt đầu thử thách (Phần 1: Phishing → Phần 2: Quiz)</span>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+
+          <div class="entry-secondary-modes">
+            <span class="sec-label">Hoặc chơi riêng từng phần:</span>
+            <div class="sec-btns">
+              <button type="button" class="btn-ghost-pill" data-start-mode="phishing">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Chỉ Phishing (<span id="countOnlyPhish">6</span>)</span>
+              </button>
+              <button type="button" class="btn-ghost-pill" data-start-mode="quiz">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Chỉ Quiz (<span id="countOnlyQuiz">10</span>)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: PHISHING SIMULATOR (STAGE 1) -->
+    <section id="view-phishing" class="view-section">
+      <div class="hud-bar card">
+        <div class="hud-player">
+          <span class="hud-avatar hud-avatar-dark" id="phishAvatar">A</span>
+          <div>
+            <div class="hud-name" id="phishPlayerLabel">Sinh viên</div>
+            <div class="hud-sub" id="phishCaseTitle">Phần 1 · Phishing Simulator</div>
+          </div>
+        </div>
+        <div class="hud-metrics">
+          <div class="metric-pill">
+            <span class="metric-label">Tình huống</span>
+            <strong id="phishProgressLabel">1 / 6</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">Mức độ</span>
+            <strong id="phishDiffLabel">Trung bình</strong>
+          </div>
+          <div class="metric-pill metric-accent">
+            <span class="metric-label">Điểm Phishing</span>
+            <strong id="phishTotalScoreLabel">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="phish-grid">
+        <div class="phish-sim-column">
+          <div class="sim-hint-bar">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Kiểm tra kỹ người gửi, nội dung, tệp đính kèm và đường dẫn trước khi quyết định. Bấm nhầm bẫy sẽ kích hoạt cảnh báo ngay.</span>
+          </div>
+
+          <div class="sim-shell" id="phishSimShell">
+            <!-- Realistic Email / Zalo / LMS rendered by JS (No URL Inspector) -->
+          </div>
+
+          <div class="phish-action-bar" id="phishActionBar">
+            <button type="button" class="btn btn-safe btn-lg" id="btnPhishTrust">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>An toàn — Tin tưởng</span>
+            </button>
+            <button type="button" class="btn btn-danger btn-lg" id="btnPhishBlock">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>Chặn — Báo cáo Phishing</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="phish-analysis-column">
+          <div class="card" id="phishResultPanel">
+            <div class="phish-waiting-box">
+              <div class="waiting-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h3>Quan sát kỹ trước khi chọn</h3>
+              <p class="muted">
+                Đánh giá theo 6 dấu hiệu <strong>A–F</strong>: người gửi, độ khẩn cấp, đường dẫn, tệp đính kèm và dữ liệu được yêu cầu.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2.5: STAGE TRANSITION (PHISHING -> QUIZ) -->
+    <section id="view-transition" class="view-section">
+      <div class="card transition-card">
+        <div class="trans-icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="entry-kicker">Hoàn thành Phần 1</div>
+        <h2>Phishing Simulator hoàn tất</h2>
+        <p class="muted" id="transPhishSummary">Bạn đã hoàn thành 0/6 tình huống và ghi được 0 điểm.</p>
+        <div class="trans-next-box">
+          <strong>Chuẩn bị sang Phần 2 · Quiz Nhanh</strong>
+          <p class="muted" style="margin:4px 0 0;">Gồm <span id="transQuizCount">10</span> câu hỏi về Buổi 6. Trả lời càng nhanh, điểm thưởng tốc độ càng cao.</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-lg" id="btnStartQuizStage">
+          <span>Bắt đầu Phần 2: Quiz Nhanh</span>
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 3: QUIZ ARENA (STAGE 2) -->
+    <section id="view-quiz" class="view-section">
+      <div class="hud-bar card">
+        <div class="hud-player">
+          <span class="hud-avatar" id="quizAvatar">A</span>
+          <div>
+            <div class="hud-name" id="quizPlayerLabel">Sinh viên</div>
+            <div class="hud-sub" id="quizCategoryLabel">Phần 2 · Quiz Buổi 6</div>
+          </div>
+        </div>
+        <div class="hud-metrics">
+          <div class="metric-pill">
+            <span class="metric-label">Câu hỏi</span>
+            <strong id="quizProgressLabel">1 / 10</strong>
+          </div>
+          <div class="metric-pill metric-streak">
+            <span class="metric-label">Chuỗi đúng</span>
+            <strong id="quizStreakLabel">0</strong>
+          </div>
+          <div class="metric-pill metric-accent">
+            <span class="metric-label">Điểm Quiz</span>
+            <strong id="quizScoreLabel">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-timer-track">
+        <div class="quiz-timer-fill" id="quizTimerFill"></div>
+      </div>
+      <div class="quiz-timer-row">
+        <span id="quizTimerStatus">Đang đếm ngược... (Tối đa +50đ tốc độ)</span>
+        <strong id="quizTimerSec" class="quiz-sec-badge">20s</strong>
+      </div>
+
+      <div class="card quiz-question-card">
+        <h2 id="quizQuestionText" class="quiz-question-text">Nội dung câu hỏi</h2>
+        <div id="quizOptionsGrid" class="quiz-options-grid"></div>
+
+        <div id="quizFeedbackBox" class="quiz-feedback-box hidden">
+          <div class="feedback-head">
+            <span id="quizFeedbackTitle">Kết quả</span>
+            <span id="quizFeedbackPoints" class="badge-pts">+0đ</span>
+          </div>
+          <p id="quizFeedbackExplain"></p>
+          <div class="feedback-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="btnQuizNext">
+              <span>Câu tiếp theo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: RESULT SUMMARY (SPLIT PHISHING & QUIZ) -->
+    <section id="view-result" class="view-section">
+      <div class="card result-card">
+        <div class="result-badge-icon" id="resultCrown">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </div>
+        <div class="result-rank-title" id="resultRankTitle">Hoàn thành thử thách</div>
+        <h2 id="resultPlayerHeading">Nguyễn Văn A</h2>
+        <p class="muted" id="resultPlayerSub">MSSV</p>
+
+        <div class="result-stats-grid">
+          <div class="res-stat">
+            <span class="res-label">Phần 1 · Phishing</span>
+            <strong id="resPhishScore">0</strong>
+            <small id="resPhishDetail">0/0 tình huống chuẩn</small>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">Phần 2 · Quiz</span>
+            <strong id="resQuizScore">0</strong>
+            <small id="resQuizDetail">0/0 câu đúng</small>
+          </div>
+          <div class="res-stat res-stat-total">
+            <span class="res-label">Tổng điểm</span>
+            <strong id="resTotalScore">0</strong>
+            <small id="resDuration">0s</small>
+          </div>
+        </div>
+
+        <div class="result-share-box">
+          <div class="share-head">
+            <strong>Gửi kết quả cho Giảng viên (Meet / Zoom)</strong>
+            <span id="resCloudSyncStatus" class="sync-badge">Đã lưu nội bộ</span>
+          </div>
+          <code id="resCopyString" class="copy-preview-code"></code>
+          <div class="share-actions">
+            <button type="button" class="btn btn-primary" id="btnCopyResultLine">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy kết quả gửi lớp</span>
+            </button>
+            <button type="button" class="btn btn-outline hidden" id="btnRetryCloudSync">
+              <span>Gửi lại BXH Online</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="result-nav-actions">
+          <button type="button" class="btn btn-primary" id="btnResultToLeaderboard">Xem Bảng xếp hạng</button>
+          <button type="button" class="btn btn-outline" id="btnResultPlayAgain">Chơi lại</button>
+          <button type="button" class="btn btn-outline" id="btnResultHome">Trang chủ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: LEADERBOARD (SEPARATED ALL / PHISHING / QUIZ) -->
+    <section id="view-leaderboard" class="view-section">
+      <div class="card lb-header-card">
+        <div>
+          <h2>Bảng Xếp Hạng Lớp Học</h2>
+          <p class="muted" id="lbSortSubtitle">Tách bạch điểm Phishing và Quiz · Xếp theo điểm cao nhất rồi thời gian nhanh nhất</p>
+        </div>
+        <div class="lb-header-actions">
+          <button type="button" class="btn btn-outline hidden" id="btnRefreshCloudLb">Tải BXH Online</button>
+          <button type="button" class="btn btn-outline" id="btnCelebrateWinner">Vinh danh Top 1</button>
+          <button type="button" class="btn btn-primary" id="btnLbPlayEntry">Chơi lượt mới</button>
+        </div>
+      </div>
+
+      <!-- Apple Segmented Filter for Leaderboard -->
+      <div class="lb-filter-bar">
+        <div class="segmented-control" role="tablist" aria-label="Phân loại bảng xếp hạng">
+          <button type="button" class="seg-btn active" data-lb-filter="all">Tổng hợp (Cả 2 phần)</button>
+          <button type="button" class="seg-btn" data-lb-filter="phishing">Phần 1: Phishing</button>
+          <button type="button" class="seg-btn" data-lb-filter="quiz">Phần 2: Quiz</button>
+        </div>
+      </div>
+
+      <div id="podiumGrid" class="podium-grid"></div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th>Hạng</th>
+                <th>Họ và Tên</th>
+                <th>MSSV</th>
+                <th>Chế độ</th>
+                <th id="thLbPhish">Phần 1 · Phishing</th>
+                <th id="thLbQuiz">Phần 2 · Quiz</th>
+                <th>Thời gian</th>
+                <th id="thLbTotal">Tổng điểm</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: TEACHER MANAGEMENT HUB (PIN GATED) -->
+    <section id="view-teacher" class="view-section">
+      <div class="card teacher-top-card">
+        <div>
+          <span class="badge-teacher">QUẢN LÝ GIẢNG VIÊN</span>
+          <h2>Điều phối Lớp học, Bảng điểm &amp; Bộ đề</h2>
+        </div>
+        <div class="teacher-tabs-bar">
+          <button type="button" class="t-tab active" data-t-tab="import">Dán Chat Meet/Zoom</button>
+          <button type="button" class="t-tab" data-t-tab="scores">Bảng điểm (<span id="tScoreCount">0</span>)</button>
+          <button type="button" class="t-tab" data-t-tab="cms">Bộ đề &amp; Cài đặt</button>
+        </div>
+      </div>
+
+      <div id="tpanel-import" class="t-panel active">
+        <div class="card">
+          <h3>Nhập hàng loạt kết quả từ Chat Google Meet / Zoom</h3>
+          <p class="muted">
+            Copy toàn bộ khung chat lớp học và dán vào ô bên dưới. Hệ thống tự lọc các dòng có định dạng <code>[BUOI6-KQ] Tên | MSSV | Phish: ... | Quiz: ... | Tổng: ... | ...s</code>.
+          </p>
+          <textarea id="bulkChatInput" class="textarea-lg" placeholder="Dán đoạn chat Meet/Zoom vào đây..."></textarea>
+          <div class="t-actions-row">
+            <button type="button" class="btn btn-primary btn-lg" id="btnParseBulkChat">Quét &amp; Cập nhật BXH</button>
+            <button type="button" class="btn btn-outline" id="btnFillSampleChat">Chèn dữ liệu mẫu</button>
+          </div>
+          <div id="bulkImportReport" class="import-report hidden"></div>
+        </div>
+      </div>
+
+      <div id="tpanel-scores" class="t-panel">
+        <div class="card">
+          <div class="section-between">
+            <h3>Danh sách điểm đã ghi nhận</h3>
+            <div class="header-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btnExportCsv">Xuất CSV (Excel)</button>
+              <button type="button" class="btn btn-danger-outline btn-sm" id="btnClearLeaderboard">Xóa toàn bộ BXH</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="margin-top:12px;">
+            <table class="lb-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Họ và Tên</th>
+                  <th>MSSV</th>
+                  <th>Phishing</th>
+                  <th>Quiz</th>
+                  <th>Tổng điểm</th>
+                  <th>Thời gian</th>
+                  <th>Nguồn</th>
+                  <th>Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="teacherScoresTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tpanel-cms" class="t-panel">
+        <div class="card" style="margin-bottom:16px;">
+          <h3>Cấu hình lớp học &amp; Đồng bộ GitHub Pages</h3>
+          <form id="formTeacherSettings" class="settings-grid">
+            <div class="form-group">
+              <label for="setSessionTitle">Tên buổi học</label>
+              <input type="text" id="setSessionTitle" class="input-std" />
+            </div>
+            <div class="form-group">
+              <label for="setSchoolName">Đơn vị / Trường</label>
+              <input type="text" id="setSchoolName" class="input-std" />
+            </div>
+            <div class="form-group">
+              <label for="setTeacherPin">Mã PIN Giảng viên (để trống nếu tắt hỏi PIN)</label>
+              <input type="text" id="setTeacherPin" class="input-std" placeholder="Mặc định: 2026" />
+            </div>
+            <div class="form-group">
+              <label for="setEndpoint">Google Apps Script URL (BXH Online - tùy chọn)</label>
+              <input type="url" id="setEndpoint" class="input-std" placeholder="https://script.google.com/macros/s/.../exec" />
+            </div>
+            <div class="settings-actions">
+              <button type="submit" class="btn btn-primary btn-sm">Lưu cấu hình</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btnExportGameDataJs">Xuất game_data.js</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btnExportJson">Xuất JSON</button>
+              <label class="btn btn-outline btn-sm file-label">
+                Nhập JSON
+                <input type="file" id="inputImportJson" accept=".json,application/json" hidden />
+              </label>
+              <button type="button" class="btn btn-danger-outline btn-sm" id="btnResetDefaults">Khôi phục bộ đề gốc</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="cms-dual-grid">
+          <div class="card">
+            <div class="section-between">
+              <h3>Phần 1 · Tình huống Phishing (<span id="cmsPhishCount">0</span>)</h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btnAddPhish">+ Thêm Phishing</button>
+            </div>
+            <div id="cmsPhishList" class="cms-items-list"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-between">
+              <h3>Phần 2 · Bộ câu hỏi Quiz (<span id="cmsQuizCount">0</span>)</h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btnAddQuiz">+ Thêm Quiz</button>
+            </div>
+            <div id="cmsQuizList" class="cms-items-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- GENERIC MODAL (Teacher PIN Gate / CMS Editor) -->
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">Tiêu đề</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseModal" aria-label="Đóng">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="modalContent" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script>window.__TEACHER_PORTAL__ = true;</script>
+  <script src="./game_data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

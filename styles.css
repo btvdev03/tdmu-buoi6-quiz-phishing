@@ -582,99 +582,376 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.sim-email-bar {
-  background: #F5F5F7;
+/* --- GMAIL AUTHENTIC SKIN --- */
+.sim-gmail-top {
+  background: #F6F8FC;
+  border-bottom: 1px solid #E1E5EA;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.78rem;
-  color: var(--muted);
+  gap: 12px;
 }
-.dots { display: flex; gap: 6px; }
-.dots span { width: 10px; height: 10px; border-radius: 50%; }
-.dots span:nth-child(1) { background: #FF5F56; }
-.dots span:nth-child(2) { background: #FFBD2E; }
-.dots span:nth-child(3) { background: #27C93F; }
-
-.sim-email-head {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--line);
+.sim-gmail-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #444746;
+}
+.sim-gmail-search {
+  flex: 1;
+  max-width: 340px;
+  background: #EAF1FB;
+  border-radius: 999px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #5F6368;
+}
+.sim-gmail-toolbar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #EDEFF2;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #444746;
+}
+.sim-gmail-tools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sim-gmail-tool-ic {
+  width: 17px;
+  height: 17px;
+  opacity: 0.78;
+}
+.sim-gmail-head {
+  padding: 18px 22px 12px;
+  background: #FFFFFF;
+}
+.sim-gmail-subject-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 .sim-subject {
-  margin: 0 0 10px;
-  font-size: 1.06rem;
-  font-weight: 600;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 500;
   letter-spacing: -0.01em;
+  color: #1F1F1F;
 }
-
+.sim-gmail-inbox-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #444746;
+  background: #E8EAED;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
 .sim-sender {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
-.sim-sender-left { display: flex; align-items: center; gap: 10px; }
+.sim-sender-left { display: flex; align-items: center; gap: 12px; }
 .sim-ava {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: var(--ink);
+  background: #1A73E8;
   color: #FFFFFF;
   display: grid;
   place-items: center;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.sim-gmail-sender-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #1F1F1F;
 }
 .sim-addr {
-  font-family: var(--mono);
   font-size: 0.8rem;
-  background: var(--bg);
-  padding: 2px 8px;
+  color: #5F6368;
+  font-family: var(--mono);
+}
+.sim-gmail-to {
+  font-size: 0.76rem;
+  color: #5F6368;
+  margin-top: 2px;
+}
+.sim-gmail-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #5F6368;
+}
+.sim-gmail-signature {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #EDEFF2;
+  font-size: 0.78rem;
+  color: #5F6368;
+  line-height: 1.5;
+}
+
+/* Gmail Attachment Card */
+.sim-gmail-attach-wrap {
+  padding: 4px 22px 20px 72px;
+}
+.sim-gmail-attach-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #DADCE0;
+  background: #F8F9FA;
+  color: #1F1F1F;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, box-shadow 0.14s;
+  text-align: left;
+}
+.sim-gmail-attach-card:hover {
+  background: #F1F3F4;
+  border-color: #BDC1C6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.sim-attach-badge {
+  width: 34px;
+  height: 38px;
   border-radius: 6px;
-  color: var(--ink);
-}
-
-.sim-zalo-head {
-  background: #0068FF;
+  background: #137333;
   color: #FFFFFF;
-  padding: 12px 18px;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.sim-attach-badge.is-pdf { background: #C5221F; }
+.sim-attach-badge.is-doc { background: #1A73E8; }
+.sim-attach-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 2px;
 }
-.sim-zalo-wrap { background: #EEF2F7; padding: 18px; }
-.sim-zalo-bubble {
-  background: #FFFFFF;
-  border-radius: 16px;
-  border-top-left-radius: 4px;
-  padding: 15px 17px;
-  box-shadow: var(--shadow-xs);
-}
-
-.sim-lms-head {
-  background: var(--ink);
-  color: #FFFFFF;
-  padding: 12px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-size: 0.92rem;
-}
-.sim-lms-url {
-  background: #F5F5F7;
-  padding: 7px 16px;
-  border-bottom: 1px solid var(--line);
+.sim-attach-name {
   font-family: var(--mono);
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1F1F1F;
+}
+.sim-attach-size {
+  font-size: 0.72rem;
+  color: #5F6368;
+}
+
+/* --- ZALO AUTHENTIC CHAT SKIN --- */
+.sim-zalo-head {
+  background: #FFFFFF;
+  color: #081C36;
+  padding: 11px 16px;
+  border-bottom: 1px solid #DCE4EE;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sim-zalo-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.sim-zalo-ava {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0068FF, #3898FF);
+  color: #FFFFFF;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.96rem;
+  flex-shrink: 0;
+}
+.sim-zalo-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #081C36;
+}
+.sim-zalo-oa-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #F59E0B;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+.sim-zalo-sub {
+  font-size: 0.76rem;
+  color: #6B7A90;
+}
+.sim-zalo-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4A5A70;
+}
+.sim-zalo-stranger-bar {
+  background: #FFF9E6;
+  border-bottom: 1px solid #F3E2A9;
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  color: #7A5400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-zalo-wrap {
+  background: #E2E9F3;
+  padding: 18px 18px 22px;
+}
+.sim-zalo-date-pill {
+  display: table;
+  margin: 0 auto 14px;
+  background: rgba(8, 28, 54, 0.22);
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+.sim-zalo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 92%;
+}
+.sim-zalo-bubble {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border-top-left-radius: 3px;
+  padding: 13px 16px 11px;
+  box-shadow: 0 1px 2px rgba(8, 28, 54, 0.1);
+}
+.sim-zalo-time {
+  font-size: 0.72rem;
+  color: #7589A3;
+  margin-top: 8px;
+}
+
+/* --- CHROME / SAFARI BROWSER PORTAL SKIN (LMS) --- */
+.sim-browser-top {
+  background: #DEE1E6;
+  padding: 8px 12px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sim-browser-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dots { display: flex; gap: 6px; padding-bottom: 8px; }
+.dots span { width: 10px; height: 10px; border-radius: 50%; }
+.dots span:nth-child(1) { background: #FF5F56; }
+.dots span:nth-child(2) { background: #FFBD2E; }
+.dots span:nth-child(3) { background: #27C93F; }
+.sim-browser-tab {
+  background: #FFFFFF;
+  color: #1F1F1F;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sim-browser-bar {
+  background: #FFFFFF;
+  padding: 7px 14px;
+  border-bottom: 1px solid #E1E3E6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sim-browser-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5F6368;
+}
+.sim-browser-omnibox {
+  flex: 1;
+  background: #F1F3F4;
+  border-radius: 999px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 0.79rem;
+  color: #202124;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sim-portal-banner {
+  background: linear-gradient(90deg, #0B3B8C, #1559C4);
+  color: #FFFFFF;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sim-portal-card {
+  margin: 16px 20px 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+}
+
+.sim-gmail-body {
+  padding-left: 72px;
 }
 
 .sim-body {
-  padding: 20px;
+  padding: 18px 22px;
   font-size: 0.95rem;
   line-height: 1.65;
   color: var(--ink);
@@ -1413,4 +1690,7 @@ body {
   .stage-preview-row { flex-direction: column; align-items: flex-start; }
   .stage-arrow { transform: rotate(90deg); }
   .card { padding: 18px; }
+  .sim-gmail-body { padding-left: 18px; }
+  .sim-gmail-attach-wrap { padding: 4px 18px 18px 18px; }
+  .sim-gmail-search { max-width: 170px; }
 }

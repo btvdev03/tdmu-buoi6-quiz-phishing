@@ -963,70 +963,170 @@
     blockBtn.disabled = false;
 
     const safeBody = sanitizeRichHtml(c.bodyHtml);
-    const attachHtml = c.attachmentName
+    const attachExt = (c.attachmentName || "").split(".").pop().toLowerCase();
+    const attachBadgeLabel = attachExt.startsWith("xls")
+      ? "XLS"
+      : attachExt === "pdf"
+        ? "PDF"
+        : attachExt.startsWith("doc")
+          ? "DOC"
+          : "FILE";
+    const attachBadgeClass = attachExt === "pdf" ? "is-pdf" : attachExt.startsWith("doc") ? "is-doc" : "";
+
+    const gmailAttachHtml = c.attachmentName
+      ? `<div class="sim-gmail-attach-wrap">
+           <button type="button" class="sim-gmail-attach-card" id="btnSimAttachment" title="Bấm để mở/tải tệp đính kèm">
+             <span class="sim-attach-badge ${attachBadgeClass}">${attachBadgeLabel}</span>
+             <span class="sim-attach-meta">
+               <span class="sim-attach-name">${escapeHtml(c.attachmentName)}</span>
+               <span class="sim-attach-size">248 KB · Bấm để tải xuống</span>
+             </span>
+             <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-left:8px;color:#5F6368;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+           </button>
+         </div>`
+      : "";
+
+    const genericAttachHtml = c.attachmentName
       ? `<button type="button" class="sim-attachment-bar" id="btnSimAttachment" title="Bấm để mở/tải tệp đính kèm">
            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
            <span>${escapeHtml(c.attachmentName)}</span>
-           <span style="font-size:0.74rem;opacity:0.7;">(Mở tệp)</span>
+           <span style="font-size:0.74rem;opacity:0.7;">(Tải xuống)</span>
          </button>`
       : "";
 
     const initial = escapeHtml((c.senderName || "U").trim().charAt(0).toUpperCase());
+    const addrLower = (c.senderAddress || "").toLowerCase();
     let skinHtml = "";
+
     if (c.channel === "zalo") {
+      const hasGoldOa = addrLower.includes("tích vàng") || addrLower.includes("official account");
+      const isStranger = addrLower.includes("lạ");
+      const oaBadgeHtml = hasGoldOa
+        ? `<span class="sim-zalo-oa-badge" title="Official Account đã xác thực"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>`
+        : "";
+      const strangerBannerHtml = isStranger
+        ? `<div class="sim-zalo-stranger-bar">
+             <svg class="svg-icon" style="width:16px;height:16px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+             <span><strong>Người lạ · Chưa kết bạn</strong> — Hãy cẩn thận khi trao đổi thông tin</span>
+           </div>`
+        : "";
+
       skinHtml = `
         <div class="sim-zalo-head">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="sim-ava" style="background:#fff;color:#0068FF;">${initial}</div>
-            <div>
-              <div style="font-weight:700;">${escapeHtml(c.senderName)}</div>
-              <div style="font-size:0.76rem;opacity:0.9;">${escapeHtml(c.senderAddress)}</div>
+          <div class="sim-zalo-user">
+            <div class="sim-zalo-ava">${initial}</div>
+            <div style="min-width:0;">
+              <div class="sim-zalo-name-row">
+                <span>${escapeHtml(c.senderName)}</span>
+                ${oaBadgeHtml}
+              </div>
+              <div class="sim-zalo-sub">${escapeHtml(c.senderAddress)}</div>
             </div>
           </div>
-          <span style="font-size:0.74rem;font-weight:700;background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:6px;">ZALO</span>
-        </div>
-        <div class="sim-zalo-wrap">
-          <div class="sim-zalo-bubble">
-            <div class="sim-body" style="padding:0;">${safeBody}</div>
-            <div style="font-size:0.75rem;color:#6E6E73;margin-top:8px;">${escapeHtml(c.time)}</div>
+          <div class="sim-zalo-actions" aria-hidden="true">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </div>
-          ${attachHtml ? `<div style="margin-top:12px;">${attachHtml}</div>` : ""}
+        </div>
+        ${strangerBannerHtml}
+        <div class="sim-zalo-wrap">
+          <div class="sim-zalo-date-pill">Hôm nay</div>
+          <div class="sim-zalo-row">
+            <div class="sim-zalo-ava" style="width:30px;height:30px;font-size:0.78rem;">${initial}</div>
+            <div class="sim-zalo-bubble">
+              <div class="sim-body" style="padding:0;">${safeBody}</div>
+              <div class="sim-zalo-time">${escapeHtml(c.time)}</div>
+            </div>
+          </div>
+          ${genericAttachHtml ? `<div style="margin-top:12px;padding-left:38px;">${genericAttachHtml}</div>` : ""}
         </div>`;
     } else if (c.channel === "lms") {
       skinHtml = `
-        <div class="sim-lms-head">
-          <span>CỔNG THÔNG TIN TDMU</span>
-          <span style="font-size:0.74rem;background:rgba(255,255,255,0.18);padding:3px 8px;border-radius:6px;">LMS / PORTAL</span>
+        <div class="sim-browser-top">
+          <div class="sim-browser-left">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="sim-browser-tab">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1559C4" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              <span>Cổng Thông Tin TDMU</span>
+            </div>
+          </div>
+          <span style="font-size:0.72rem;color:#5F6368;padding-bottom:7px;">Trình duyệt</span>
         </div>
-        <div class="sim-lms-url">${escapeHtml(c.senderAddress)}</div>
-        <div class="sim-email-head">
-          <h3 class="sim-subject">${escapeHtml(c.subject)}</h3>
-          <div style="font-size:0.84rem;color:#6E6E73;">Người gửi: <strong>${escapeHtml(c.senderName)}</strong> · ${escapeHtml(c.time)}</div>
+        <div class="sim-browser-bar">
+          <div class="sim-browser-nav-btns" aria-hidden="true">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="sim-browser-omnibox">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#137333" stroke-width="2.2" style="flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>${escapeHtml(c.senderAddress)}</span>
+          </div>
         </div>
-        <div class="sim-body">${safeBody}</div>
-        ${attachHtml}`;
+        <div class="sim-portal-banner">
+          <div style="font-weight:700;font-size:0.9rem;letter-spacing:0.01em;">TRƯỜNG ĐH THỦ DẦU MỘT · PORTAL</div>
+          <span style="font-size:0.74rem;background:rgba(255,255,255,0.18);padding:3px 9px;border-radius:999px;">Thông báo hệ thống</span>
+        </div>
+        <div class="sim-portal-card">
+          <h3 class="sim-subject" style="margin-bottom:6px;font-size:1.05rem;">${escapeHtml(c.subject)}</h3>
+          <div style="font-size:0.82rem;color:#5F6368;">Đơn vị đăng: <strong>${escapeHtml(c.senderName)}</strong> · ${escapeHtml(c.time)}</div>
+        </div>
+        <div class="sim-body" style="padding-top:10px;">${safeBody}</div>
+        ${genericAttachHtml}`;
     } else {
       skinHtml = `
-        <div class="sim-email-bar">
-          <div class="dots"><span></span><span></span><span></span></div>
-          <span>Hộp thư đến</span>
-          <strong>EMAIL</strong>
+        <div class="sim-gmail-top">
+          <div class="sim-gmail-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#FFFFFF" stroke="#EA4335" stroke-width="1.8"/><polyline points="22,7 12,13 2,7" stroke="#EA4335" stroke-width="1.8" fill="none"/></svg>
+            <span>Gmail</span>
+          </div>
+          <div class="sim-gmail-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Tìm kiếm trong thư</span>
+          </div>
         </div>
-        <div class="sim-email-head">
-          <h3 class="sim-subject">${escapeHtml(c.subject)}</h3>
+        <div class="sim-gmail-toolbar" aria-hidden="true">
+          <div class="sim-gmail-tools">
+            <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <span style="font-size:0.75rem;">1 / ${state.session?.phishTotal || 6}</span>
+        </div>
+        <div class="sim-gmail-head">
+          <div class="sim-gmail-subject-row">
+            <h3 class="sim-subject">${escapeHtml(c.subject)}</h3>
+            <span class="sim-gmail-inbox-tag">Hộp thư đến</span>
+          </div>
           <div class="sim-sender">
             <div class="sim-sender-left">
               <div class="sim-ava">${initial}</div>
               <div>
-                <div style="font-weight:600;">${escapeHtml(c.senderName)}</div>
-                <span class="sim-addr">&lt;${escapeHtml(c.senderAddress)}&gt;</span>
+                <div>
+                  <span class="sim-gmail-sender-name">${escapeHtml(c.senderName)}</span>
+                  <span class="sim-addr">&lt;${escapeHtml(c.senderAddress)}&gt;</span>
+                </div>
+                <div class="sim-gmail-to">tới tôi ▾</div>
               </div>
             </div>
-            <span style="font-size:0.82rem;color:#6E6E73;">${escapeHtml(c.time)}</span>
+            <div class="sim-gmail-meta-right">
+              <span>${escapeHtml(c.time)}</span>
+              <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg class="sim-gmail-tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </div>
           </div>
         </div>
-        <div class="sim-body">${safeBody}</div>
-        ${attachHtml}`;
+        <div class="sim-body sim-gmail-body">
+          ${safeBody}
+          <div class="sim-gmail-signature">
+            --<br>
+            Thư điện tử được gửi qua hệ thống webmail · Vui lòng kiểm tra kỹ địa chỉ người gửi trước khi thao tác.
+          </div>
+        </div>
+        ${gmailAttachHtml}`;
     }
 
     document.getElementById("phishSimShell").innerHTML = skinHtml;
@@ -1868,7 +1968,7 @@
     document.getElementById("btnBrandHome").addEventListener("click", () => showView("entry"));
     document.getElementById("btnBackHome").addEventListener("click", () => showView("entry"));
     document.getElementById("btnNavLeaderboard").addEventListener("click", () => showView("leaderboard"));
-    document.getElementById("btnOpenTeacherGate").addEventListener("click", openTeacherGate);
+    document.getElementById("btnOpenTeacherGate")?.addEventListener("click", openTeacherGate);
     document.getElementById("btnToggleMute").addEventListener("click", () => {
       state.muted = !state.muted;
       renderHeaderMeta();
@@ -2132,5 +2232,11 @@
     bindEvents();
     renderEntryView();
     showView("entry");
+    const isTeacherPortal =
+      Boolean(window.__TEACHER_PORTAL__) ||
+      new URLSearchParams(window.location.search).get("gv") === "1";
+    if (isTeacherPortal) {
+      openTeacherGate();
+    }
   });
 })();
