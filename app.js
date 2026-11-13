@@ -603,6 +603,9 @@
         if (parsedCfg?.meta?.teacherPin === "2026") {
           parsedCfg.meta.teacherPin = data.meta.teacherPin;
         }
+        if (parsedCfg?.meta && !parsedCfg.meta.leaderboardEndpoint && data.meta.leaderboardEndpoint) {
+          parsedCfg.meta.leaderboardEndpoint = data.meta.leaderboardEndpoint;
+        }
         data = normalizeAppData(parsedCfg);
       }
     } catch (e) { /* ignore */ }
@@ -633,7 +636,8 @@
       teacherUnlocked: false,
       teacherTab: "import",
       session: null,
-      quizIntervalId: null
+      quizIntervalId: null,
+      lbPollIntervalId: null
     };
   }
 
@@ -662,8 +666,16 @@
   // --------------------------------------------------------------------------
   // 5. NAVIGATION & TOPBAR
   // --------------------------------------------------------------------------
+  function stopLbPolling() {
+    if (state.lbPollIntervalId) {
+      clearInterval(state.lbPollIntervalId);
+      state.lbPollIntervalId = null;
+    }
+  }
+
   function showView(viewName) {
     if (viewName !== "quiz") stopQuizTimer();
+    if (viewName !== "leaderboard") stopLbPolling();
     state.activeView = viewName;
     document.querySelectorAll(".view-section").forEach((sec) => {
       sec.classList.toggle("active", sec.id === `view-${viewName}`);
@@ -672,7 +684,16 @@
     if (backBtn) backBtn.classList.toggle("hidden", viewName === "entry");
 
     if (viewName === "entry") renderEntryView();
-    else if (viewName === "leaderboard") renderLeaderboardView();
+    else if (viewName === "leaderboard") {
+      renderLeaderboardView();
+      if (state.data.meta.leaderboardEndpoint) {
+        refreshCloudLeaderboard(true);
+        stopLbPolling();
+        state.lbPollIntervalId = setInterval(() => {
+          if (state.activeView === "leaderboard") refreshCloudLeaderboard(true);
+        }, 10000);
+      }
+    }
     else if (viewName === "teacher") renderTeacherView();
   }
 
@@ -1511,10 +1532,13 @@
     const payload = {
       name: entry.name,
       mssv: entry.mssv,
+      mode: entry.mode,
       quizScore: entry.quizScore,
       quizCorrect: entry.quizCorrect,
+      quizTotal: entry.quizTotal,
       phishingScore: entry.phishScore,
       phishingCorrect: entry.phishCorrect,
+      phishTotal: entry.phishTotal,
       totalScore: entry.totalScore,
       durationSec: entry.durationSec,
       timestamp: entry.createdAt || new Date().toISOString()
@@ -1527,10 +1551,11 @@
         body: JSON.stringify(payload)
       });
       if (badge) {
-        badge.textContent = "☁️ Đã gửi kết quả lên BXH Online!";
+        badge.textContent = "Đã gửi kết quả lên BXH Online!";
         badge.classList.add("ok");
       }
       showToast("Đã gửi điểm lên Bảng Xếp Hạng Online!", "success");
+      setTimeout(() => refreshCloudLeaderboard(true), 1200);
     } catch (err) {
       if (badge) {
         badge.textContent = "⚠️ Gửi Online thất bại — hãy Copy dòng kết quả gửi Chat!";
@@ -1645,7 +1670,7 @@
       .join("");
   }
 
-  async function refreshCloudLeaderboard() {
+  async function refreshCloudLeaderboard(silent = false) {
     const endpoint = state.data.meta.leaderboardEndpoint;
     if (!endpoint) return;
     try {
@@ -1675,7 +1700,6 @@
           durationSec: Number(r.durationSec) || 0,
           source: "Cloud"
         };
-        delete entry.phishingCorrect;
         const idx = state.leaderboard.findIndex(
           (x) => x.id === key || (x.name.toLowerCase() === name.toLowerCase() && x.mssv.toLowerCase() === mssv.toLowerCase())
         );
@@ -1690,10 +1714,16 @@
         }
       }
       saveLeaderboard();
-      renderLeaderboardView();
-      showToast(`Đã đồng bộ BXH Online (+${added} mới, cập nhật ${updated})!`, "success");
+      renderHeaderMeta();
+      if (state.activeView === "leaderboard") renderLeaderboardView();
+      if (state.activeView === "teacher" && state.teacherTab === "scores") renderTeacherScoresTable();
+      if (!silent) {
+        showToast(`Đã đồng bộ BXH Online (+${added} mới, cập nhật ${updated})!`, "success");
+      }
     } catch (err) {
-      showToast("Không tải được JSON từ Apps Script (kiểm tra CORS / quyền Web App).", "warning");
+      if (!silent) {
+        showToast("Không tải được JSON từ Apps Script (kiểm tra CORS / quyền Web App).", "warning");
+      }
     }
   }
 
@@ -2253,7 +2283,7 @@
         renderLeaderboardView();
       });
     });
-    document.getElementById("btnRefreshCloudLb").addEventListener("click", refreshCloudLeaderboard);
+    document.getElementById("btnRefreshCloudLb").addEventListener("click", () => refreshCloudLeaderboard(false));
     document.getElementById("btnCelebrateWinner").addEventListener("click", () => {
       AudioEngine.fanfare();
       Confetti.launch();
@@ -2427,6 +2457,9 @@
       new URLSearchParams(window.location.search).get("gv") === "1";
     if (isTeacherPortal) {
       openTeacherGate();
+    }
+    if (state.data.meta.leaderboardEndpoint) {
+      refreshCloudLeaderboard(true);
     }
   });
 })();
