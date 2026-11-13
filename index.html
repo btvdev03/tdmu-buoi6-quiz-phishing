@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buổi 6: AI Mastery Quiz &amp; Phishing Simulator | TDMU</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- RED ALERT BREACH OVERLAY (Full-screen Phishing Trap Simulation) -->
+  <div id="breachOverlay" class="breach-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="breachRiskTitle">
+    <div class="breach-modal">
+      <div class="breach-safety-banner">
+        🛡️ MÔ PHỎNG GIÁO DỤC AN TOÀN — KHÔNG CÓ DỮ LIỆU THẬT BỊ GỬI ĐI
+      </div>
+      <div class="breach-header">
+        <div class="breach-siren-icon">🚨</div>
+        <div>
+          <div class="breach-kicker">CẢNH BÁO XÂM NHẬP HỆ THỐNG · PHISHING BREACH!</div>
+          <h2 id="breachRiskTitle">Bạn vừa sập bẫy liên kết / tệp độc hại!</h2>
+        </div>
+      </div>
+
+      <div class="breach-url-box">
+        <span class="breach-url-label">🌐 Đã kết nối tới URL độc hại:</span>
+        <code id="breachFakeUrl">http://unknown-phish.xyz</code>
+      </div>
+
+      <div class="breach-sim-terminal">
+        <div class="terminal-title">⚡ Mô phỏng tiến trình trích xuất dữ liệu trái phép:</div>
+        <ul id="breachStolenList" class="stolen-list"></ul>
+      </div>
+
+      <div class="breach-detail-box">
+        <strong>💥 Hậu quả thực tế nếu xảy ra ngoài đời:</strong>
+        <p id="breachRiskDetail"></p>
+      </div>
+
+      <div class="breach-footer">
+        <span class="breach-score-badge">Điểm ca này: <strong>0đ</strong> (Mất cảnh giác)</span>
+        <button type="button" class="btn btn-light-danger btn-lg" id="btnCloseBreachToAnalysis">
+          🔍 Xem Phân Tích 6 Dấu Hiệu A–F để Rút Kinh Nghiệm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" id="btnBrandHome" role="button" tabindex="0" title="Về trang chủ">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="M9 12l2 2 4-4"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-school" id="headerSchool">ĐH Thủ Dầu Một · Trung tâm Chuyển đổi số</div>
+          <div class="brand-title" id="headerSession">Buổi 6: AI Mastery Quiz &amp; Phishing Lab</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="btn-top hidden" id="btnBackHome">
+          <span>🏠 Trang chủ</span>
+        </button>
+        <button type="button" class="btn-top" id="btnNavLeaderboard">
+          <span>🏆 Xếp hạng</span>
+          <span class="pill-count" id="topLeaderboardCount">0</span>
+        </button>
+        <button type="button" class="btn-top-icon" id="btnToggleMute" title="Bật / Tắt âm thanh">
+          <svg id="iconSoundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+          <svg id="iconSoundOff" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        </button>
+        <button type="button" class="btn-top btn-top-teacher" id="btnOpenTeacherGate">
+          <span>⚙️ Quản lý (GV)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <!-- VIEW 1: PLAYER ENTRY + MODE HUB -->
+    <section id="view-entry" class="view-section active">
+      <div class="entry-hero">
+        <div class="entry-hero-badge" id="entryCourseBadge">NĂNG LỰC SỐ · LỚP HỌC TRỰC TUYẾN</div>
+        <h1 id="entrySessionTitle">Đấu Trường AI Mastery &amp; Phishing Simulator</h1>
+        <p class="entry-hero-sub">
+          Trả lời nhanh 10 câu hỏi trắc nghiệm tốc độ cao và thực hành nhận diện email/tin nhắn lừa đảo tương tác trực tiếp — bấm nhầm bẫy sẽ kích hoạt mô phỏng sự cố an ninh ngay lập tức!
+        </p>
+        <div id="syncStatusPill" class="sync-pill hidden"></div>
+      </div>
+
+      <div class="entry-grid">
+        <div class="card entry-form-card">
+          <h2>1. Nhập thông tin sinh viên</h2>
+          <p class="muted">Tên của bạn sẽ hiển thị trên Bảng Xếp Hạng lớp học.</p>
+          <div class="form-group">
+            <label for="inputPlayerName">Họ và Tên <span class="req">*</span></label>
+            <input type="text" id="inputPlayerName" class="input-lg" placeholder="VD: Nguyễn Văn An" maxlength="60" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="inputPlayerMssv">MSSV / Nhóm <span class="opt">(tùy chọn)</span></label>
+            <input type="text" id="inputPlayerMssv" class="input-lg" placeholder="VD: 222480201 - Nhóm 2" maxlength="40" />
+          </div>
+        </div>
+
+        <div class="card entry-modes-card">
+          <h2>2. Chọn chế độ thử thách</h2>
+          <p class="muted">Chọn 1 trong 3 chế độ bên dưới để bắt đầu tính giờ:</p>
+
+          <div class="mode-stack">
+            <button type="button" class="mode-card mode-combo" data-start-mode="combo">
+              <div class="mode-icon">🚀</div>
+              <div class="mode-info">
+                <div class="mode-title">Chơi Trọn Bộ (<span id="countComboQuiz">10</span> Quiz + <span id="countComboPhish">6</span> Phishing)</div>
+                <div class="mode-desc">Tính tổng điểm Combo · Cạnh tranh Top 1 toàn lớp!</div>
+              </div>
+              <span class="mode-arrow">→</span>
+            </button>
+
+            <button type="button" class="mode-card mode-quiz" data-start-mode="quiz">
+              <div class="mode-icon">⚡</div>
+              <div class="mode-info">
+                <div class="mode-title">Chỉ chơi Quiz Nhanh (<span id="countOnlyQuiz">10</span> Câu)</div>
+                <div class="mode-desc">Đếm ngược tốc độ kiểu Kahoot · Bonus +50đ khi trả lời nhanh</div>
+              </div>
+              <span class="mode-arrow">→</span>
+            </button>
+
+            <button type="button" class="mode-card mode-phish" data-start-mode="phishing">
+              <div class="mode-icon">🛡️</div>
+              <div class="mode-info">
+                <div class="mode-title">Chỉ chơi Phishing Simulator (<span id="countOnlyPhish">6</span> Tình Huống)</div>
+                <div class="mode-desc">Soi link · Thử bấm thật · Phân tích 6 dấu hiệu A–F</div>
+              </div>
+              <span class="mode-arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: QUIZ ARENA -->
+    <section id="view-quiz" class="view-section">
+      <div class="hud-bar card">
+        <div class="hud-player">
+          <span class="hud-avatar" id="quizAvatar">A</span>
+          <div>
+            <div class="hud-name" id="quizPlayerLabel">Sinh viên</div>
+            <div class="hud-sub" id="quizCategoryLabel">Chủ đề</div>
+          </div>
+        </div>
+        <div class="hud-metrics">
+          <div class="metric-pill">
+            <span class="metric-label">Tiến trình</span>
+            <strong id="quizProgressLabel">1 / 10</strong>
+          </div>
+          <div class="metric-pill metric-streak">
+            <span class="metric-label">Chuỗi đúng</span>
+            <strong id="quizStreakLabel">🔥 0</strong>
+          </div>
+          <div class="metric-pill metric-score">
+            <span class="metric-label">Điểm</span>
+            <strong id="quizScoreLabel">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-timer-track">
+        <div class="quiz-timer-fill" id="quizTimerFill"></div>
+      </div>
+      <div class="quiz-timer-row">
+        <span id="quizTimerStatus">Đang tính thời gian...</span>
+        <strong id="quizTimerSec" class="quiz-sec-badge">20s</strong>
+      </div>
+
+      <div class="card quiz-question-card">
+        <h2 id="quizQuestionText" class="quiz-question-text">Nội dung câu hỏi</h2>
+        <div id="quizOptionsGrid" class="quiz-options-grid">
+          <!-- 4 options rendered by JS -->
+        </div>
+
+        <div id="quizFeedbackBox" class="quiz-feedback-box hidden">
+          <div class="feedback-head">
+            <span id="quizFeedbackTitle">Kết quả</span>
+            <span id="quizFeedbackPoints" class="badge-pts">+0đ</span>
+          </div>
+          <p id="quizFeedbackExplain"></p>
+          <div class="feedback-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="btnQuizNext">Câu tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: PHISHING SIMULATOR -->
+    <section id="view-phishing" class="view-section">
+      <div class="hud-bar card">
+        <div class="hud-player">
+          <span class="hud-avatar hud-avatar-teal" id="phishAvatar">A</span>
+          <div>
+            <div class="hud-name" id="phishPlayerLabel">Sinh viên</div>
+            <div class="hud-sub" id="phishCaseTitle">Phishing Simulator</div>
+          </div>
+        </div>
+        <div class="hud-metrics">
+          <div class="metric-pill">
+            <span class="metric-label">Tình huống</span>
+            <strong id="phishProgressLabel">1 / 6</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">Độ khó</span>
+            <strong id="phishDiffLabel">Trung bình</strong>
+          </div>
+          <div class="metric-pill metric-score">
+            <span class="metric-label">Tổng điểm</span>
+            <strong id="phishTotalScoreLabel">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="phish-grid">
+        <div class="phish-sim-column">
+          <div class="sim-hint-bar">
+            💡 Rê chuột lên link để soi URL thật ở thanh đáy · Bấm trực tiếp vào link hoặc tệp đính kèm để kiểm tra phản xạ!
+          </div>
+
+          <div class="sim-shell" id="phishSimShell">
+            <!-- Realistic Email / Zalo / LMS rendered here -->
+          </div>
+
+          <div class="phish-action-bar" id="phishActionBar">
+            <button type="button" class="btn btn-safe btn-lg" id="btnPhishTrust">
+              ✅ AN TOÀN — TIN TƯỞNG / MỞ LIÊN KẾT
+            </button>
+            <button type="button" class="btn btn-block btn-lg" id="btnPhishBlock">
+              🚨 CHẶN &amp; BÁO CÁO PHISHING
+            </button>
+          </div>
+        </div>
+
+        <div class="phish-analysis-column">
+          <div class="card" id="phishResultPanel">
+            <div class="phish-waiting-box">
+              <div style="font-size:2.4rem;margin-bottom:8px;">🕵️‍♂️</div>
+              <h3>Hãy kiểm tra kỹ trước khi quyết định!</h3>
+              <p class="muted">
+                Kiểm tra <strong>người gửi</strong>, rê chuột soi <strong>URL thật</strong>, xem <strong>file đính kèm</strong> và <strong>dữ liệu bị yêu cầu</strong>.
+              </p>
+              <p class="muted" style="font-size:0.86rem;">
+                ⚠️ Nếu bạn bấm nhầm vào link lừa đảo hoặc tệp đính kèm độc hại trong khung bên trái, cảnh báo xâm nhập sẽ kích hoạt ngay lập tức!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: RESULT SUMMARY -->
+    <section id="view-result" class="view-section">
+      <div class="card result-card">
+        <div class="result-badge-icon" id="resultCrown">🏆</div>
+        <div class="result-rank-title" id="resultRankTitle">Chiến thần An toàn số</div>
+        <h2 id="resultPlayerHeading">Nguyễn Văn A</h2>
+        <p class="muted" id="resultPlayerSub">MSSV / Nhóm</p>
+
+        <div class="result-stats-grid">
+          <div class="res-stat">
+            <span class="res-label">Điểm Quiz</span>
+            <strong id="resQuizScore">0</strong>
+            <small id="resQuizDetail">0/0 đúng</small>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">Điểm Phishing</span>
+            <strong id="resPhishScore">0</strong>
+            <small id="resPhishDetail">0/0 chuẩn</small>
+          </div>
+          <div class="res-stat res-stat-total">
+            <span class="res-label">TỔNG ĐIỂM</span>
+            <strong id="resTotalScore">0</strong>
+            <small id="resDuration">0s</small>
+          </div>
+        </div>
+
+        <!-- Sync & Copy Result for Online Class -->
+        <div class="result-share-box">
+          <div class="share-head">
+            <strong>📤 Gửi kết quả cho Giảng viên (Lớp Online Meet/Zoom):</strong>
+            <span id="resCloudSyncStatus" class="sync-badge">Lưu nội bộ trình duyệt</span>
+          </div>
+          <code id="resCopyString" class="copy-preview-code"></code>
+          <div class="share-actions">
+            <button type="button" class="btn btn-teal btn-lg" id="btnCopyResultLine">
+              📋 Copy Kết Quả Gửi Lớp
+            </button>
+            <button type="button" class="btn btn-outline hidden" id="btnRetryCloudSync">
+              ☁️ Gửi lại lên BXH Online
+            </button>
+          </div>
+        </div>
+
+        <div class="result-nav-actions">
+          <button type="button" class="btn btn-primary" id="btnResultToLeaderboard">🏆 Xem Bảng Xếp Hạng</button>
+          <button type="button" class="btn btn-outline" id="btnResultPlayAgain">🔄 Chơi lại</button>
+          <button type="button" class="btn btn-outline" id="btnResultHome">🏠 Về Trang Chủ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: LEADERBOARD -->
+    <section id="view-leaderboard" class="view-section">
+      <div class="card lb-header-card">
+        <div>
+          <h2>🏆 Bảng Xếp Hạng Lớp Học</h2>
+          <p class="muted">Xếp theo Tổng điểm cao nhất → Thời gian hoàn thành nhanh nhất</p>
+        </div>
+        <div class="lb-header-actions">
+          <button type="button" class="btn btn-outline hidden" id="btnRefreshCloudLb">🔄 Tải BXH Online</button>
+          <button type="button" class="btn btn-gold" id="btnCelebrateWinner">🎆 Vinh danh Top 1</button>
+          <button type="button" class="btn btn-primary" id="btnLbPlayEntry">🎮 Chơi lượt mới</button>
+        </div>
+      </div>
+
+      <div id="podiumGrid" class="podium-grid"></div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th>Hạng</th>
+                <th>Họ và Tên</th>
+                <th>MSSV / Nhóm</th>
+                <th>Chế độ</th>
+                <th>Quiz</th>
+                <th>Phishing</th>
+                <th>Thời gian</th>
+                <th>Tổng điểm</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: TEACHER MANAGEMENT HUB (PIN GATED) -->
+    <section id="view-teacher" class="view-section">
+      <div class="card teacher-top-card">
+        <div>
+          <span class="badge-teacher">CHẾ ĐỘ GIẢNG VIÊN</span>
+          <h2>⚙️ Quản lý Lớp Học, Dán Kết Quả Chat &amp; Bộ Đề</h2>
+        </div>
+        <div class="teacher-tabs-bar">
+          <button type="button" class="t-tab active" data-t-tab="import">📥 Dán Chat Meet/Zoom</button>
+          <button type="button" class="t-tab" data-t-tab="scores">📊 Quản lý BXH (<span id="tScoreCount">0</span>)</button>
+          <button type="button" class="t-tab" data-t-tab="cms">📝 Bộ đề &amp; Cài đặt</button>
+        </div>
+      </div>
+
+      <!-- Teacher Tab 1: Bulk Paste Meet/Zoom Chat -->
+      <div id="tpanel-import" class="t-panel active">
+        <div class="card">
+          <h3>📥 Nhập Hàng Loạt Kết Quả từ Chat Google Meet / Zoom</h3>
+          <p class="muted">
+            Copy toàn bộ khung chat lớp học (kể cả lẫn tên người gửi, giờ nhắn, tin nhắn trò chuyện bình thường) rồi dán vào ô bên dưới. Hệ thống tự động bắt các dòng có định dạng <code>[BUOI6-KQ] Tên | MSSV | Quiz: ... | Phish: ... | Tổng: ... | ...s</code>.
+          </p>
+          <textarea id="bulkChatInput" class="textarea-lg" placeholder="Dán đoạn chat Meet/Zoom vào đây...&#10;Ví dụ:&#10;19:45 Nguyễn Văn An: [BUOI6-KQ] Nguyễn Văn An | 222480201 | Quiz: 850 (8/10) | Phish: 750 (5/6) | Tổng: 1600 | 112s"></textarea>
+          <div class="t-actions-row">
+            <button type="button" class="btn btn-teal btn-lg" id="btnParseBulkChat">⚡ Quét &amp; Đẩy lên Bảng Xếp Hạng</button>
+            <button type="button" class="btn btn-outline" id="btnFillSampleChat">Thử dữ liệu mẫu</button>
+          </div>
+          <div id="bulkImportReport" class="import-report hidden"></div>
+        </div>
+      </div>
+
+      <!-- Teacher Tab 2: Manage Scores & CSV Export -->
+      <div id="tpanel-scores" class="t-panel">
+        <div class="card">
+          <div class="section-between">
+            <h3>📊 Danh Sách Điểm Đã Ghi Nhận</h3>
+            <div class="header-actions">
+              <button type="button" class="btn btn-teal btn-sm" id="btnExportCsv">📥 Xuất CSV (Excel UTF-8 BOM)</button>
+              <button type="button" class="btn btn-danger-outline btn-sm" id="btnClearLeaderboard">🗑️ Xóa toàn bộ BXH</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="margin-top:12px;">
+            <table class="lb-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Họ và Tên</th>
+                  <th>MSSV / Nhóm</th>
+                  <th>Quiz</th>
+                  <th>Phishing</th>
+                  <th>Tổng điểm</th>
+                  <th>Thời gian</th>
+                  <th>Nguồn</th>
+                  <th>Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="teacherScoresTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teacher Tab 3: CMS & Settings -->
+      <div id="tpanel-cms" class="t-panel">
+        <div class="card" style="margin-bottom:16px;">
+          <h3>🔧 Cấu Hình Lớp Học &amp; Đồng Bộ GitHub Pages</h3>
+          <form id="formTeacherSettings" class="settings-grid">
+            <div class="form-group">
+              <label for="setSessionTitle">Tên buổi học</label>
+              <input type="text" id="setSessionTitle" class="input-std" />
+            </div>
+            <div class="form-group">
+              <label for="setSchoolName">Đơn vị / Trường</label>
+              <input type="text" id="setSchoolName" class="input-std" />
+            </div>
+            <div class="form-group">
+              <label for="setTeacherPin">Mã PIN Giảng viên (để trống nếu muốn tắt hỏi PIN)</label>
+              <input type="text" id="setTeacherPin" class="input-std" placeholder="Mặc định: 2026" />
+            </div>
+            <div class="form-group">
+              <label for="setEndpoint">Google Apps Script URL (Leaderboard Endpoint - tùy chọn)</label>
+              <input type="url" id="setEndpoint" class="input-std" placeholder="https://script.google.com/macros/s/.../exec" />
+            </div>
+            <div class="settings-actions">
+              <button type="submit" class="btn btn-primary btn-sm">💾 Lưu cấu hình</button>
+              <button type="button" class="btn btn-teal btn-sm" id="btnExportGameDataJs">📦 Xuất game_data.js (Commit GitHub)</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btnExportJson">Xuất JSON</button>
+              <label class="btn btn-outline btn-sm file-label">
+                Nhập JSON
+                <input type="file" id="inputImportJson" accept=".json,application/json" hidden />
+              </label>
+              <button type="button" class="btn btn-danger-outline btn-sm" id="btnResetDefaults">Khôi phục bộ đề gốc</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="cms-dual-grid">
+          <div class="card">
+            <div class="section-between">
+              <h3>⚡ Bộ câu hỏi Quiz (<span id="cmsQuizCount">0</span>)</h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btnAddQuiz">+ Thêm Quiz</button>
+            </div>
+            <div id="cmsQuizList" class="cms-items-list"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-between">
+              <h3>🛡️ Tình huống Phishing (<span id="cmsPhishCount">0</span>)</h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btnAddPhish">+ Thêm Phishing</button>
+            </div>
+            <div id="cmsPhishList" class="cms-items-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- GENERIC MODAL (Teacher PIN Gate / CMS Editor) -->
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">Tiêu đề</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseModal" aria-label="Đóng">✕</button>
+      </div>
+      <div id="modalContent" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="./game_data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
